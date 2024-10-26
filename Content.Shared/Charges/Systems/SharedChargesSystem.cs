@@ -1,6 +1,7 @@
 using Content.Shared.Actions.Events;
 using Content.Shared.Charges.Components;
 using Content.Shared.Examine;
+using Content.Shared.FixedPoint;
 using Content.Shared.Rejuvenate;
 using JetBrains.Annotations;
 using Robust.Shared.Timing;
@@ -100,13 +101,7 @@ public abstract class SharedChargesSystem : EntitySystem
     /// <summary>
     /// Adds the specified charges. Does not reset the accumulator.
     /// </summary>
-    /// <param name="action">
-    /// The action to add charges to. If it doesn't have <see cref="LimitedChargesComponent"/>, it will be added.
-    /// </param>
-    /// <param name="addCharges">
-    /// The number of charges to add. Can be negative. Resulting charge count is clamped to [0, MaxCharges].
-    /// </param>
-    public void AddCharges(Entity<LimitedChargesComponent?, AutoRechargeComponent?> action, int addCharges)
+    public virtual void AddCharges(EntityUid uid, FixedPoint2 change, LimitedChargesComponent? comp = null)
     {
         if (addCharges == 0)
             return;
@@ -119,49 +114,10 @@ public abstract class SharedChargesSystem : EntitySystem
         if (lastCharges == charges)
             return;
 
-        // If we were at max then need to reset the timer.
-        if (charges == action.Comp1.MaxCharges || lastCharges == action.Comp1.MaxCharges)
-        {
-            action.Comp1.LastUpdate = _timing.CurTime;
-            action.Comp1.LastCharges = action.Comp1.MaxCharges;
-        }
-        // If it has auto-recharge then make up the difference.
-        else if (Resolve(action.Owner, ref action.Comp2, false))
-        {
-            var duration = action.Comp2.RechargeDuration;
-            var diff = (_timing.CurTime - action.Comp1.LastUpdate);
-            var remainder = (int) (diff / duration);
-
-            action.Comp1.LastCharges += remainder;
-            action.Comp1.LastUpdate += (remainder * duration);
-        }
-
-        action.Comp1.LastCharges = Math.Clamp(action.Comp1.LastCharges + addCharges, 0, action.Comp1.MaxCharges);
-        Dirty(action.Owner, action.Comp1);
-    }
-
-    public bool TryUseCharge(Entity<LimitedChargesComponent?> entity)
-    {
-        return TryUseCharges(entity, 1);
-    }
-
-    public bool TryUseCharges(Entity<LimitedChargesComponent?> entity, int amount)
-    {
-        var current = GetCurrentCharges(entity);
-
-        if (current < amount)
-        {
-            return false;
-        }
-
-        AddCharges(entity, -amount);
-        return true;
-    }
-
-    [Pure]
-    public bool IsEmpty(Entity<LimitedChargesComponent?> entity)
-    {
-        return GetCurrentCharges(entity) == 0;
+        var old = comp.Charges;
+        comp.Charges = FixedPoint2.Clamp(comp.Charges + change, 0, comp.MaxCharges);
+        if (comp.Charges != old)
+            Dirty(uid, comp);
     }
 
     /// <summary>
@@ -238,50 +194,20 @@ public abstract class SharedChargesSystem : EntitySystem
     /// <summary>
     /// The next time a charge will be considered to be filled.
     /// </summary>
-    /// <returns>0 timespan if invalid or no charges to generate.</returns>
-    [Pure]
-    public TimeSpan GetNextRechargeTime(Entity<LimitedChargesComponent?, AutoRechargeComponent?> entity)
+    public bool HasInsufficientCharges(EntityUid uid, FixedPoint2 requiredCharges, LimitedChargesComponent? comp = null)
     {
-        if (!Resolve(entity.Owner, ref entity.Comp1, ref entity.Comp2, false))
-        {
-            return TimeSpan.Zero;
-        }
+        // can't be empty if there are no limited charges
+        if (!Resolve(uid, ref comp, false))
+            return false;
 
-        // Okay so essentially we need to get recharge time to full, then modulus that by the recharge timer which should be the next tick.
-        var fullTime = ((entity.Comp1.MaxCharges - entity.Comp1.LastCharges) * entity.Comp2.RechargeDuration) + entity.Comp1.LastUpdate;
-        var timeRemaining = fullTime - _timing.CurTime;
-
-        if (timeRemaining < TimeSpan.Zero)
-        {
-            return TimeSpan.Zero;
-        }
-
-        var nextChargeTime = timeRemaining.TotalSeconds % entity.Comp2.RechargeDuration.TotalSeconds;
-        return TimeSpan.FromSeconds(nextChargeTime);
+        return comp.Charges < requiredCharges;
     }
 
     /// <summary>
     /// Derives the current charges of an entity.
     /// </summary>
-    [Pure]
-    public int GetCurrentCharges(Entity<LimitedChargesComponent?, AutoRechargeComponent?> entity)
+    public virtual void UseCharges(EntityUid uid, FixedPoint2 chargesUsed, LimitedChargesComponent? comp = null)
     {
-        if (!Resolve(entity.Owner, ref entity.Comp1, false))
-        {
-            // I'm all in favor of nullable ints however null-checking return args against comp nullability is dodgy
-            // so we get this.
-            return -1;
-        }
-
-        var calculated = 0;
-
-        if (Resolve(entity.Owner, ref entity.Comp2, false) && entity.Comp2.RechargeDuration.TotalSeconds != 0.0)
-        {
-            calculated = (int)((_timing.CurTime - entity.Comp1.LastUpdate).TotalSeconds / entity.Comp2.RechargeDuration.TotalSeconds);
-        }
-
-        return Math.Clamp(entity.Comp1.LastCharges + calculated,
-            0,
-            entity.Comp1.MaxCharges);
+        AddCharges(uid, -chargesUsed, comp);
     }
 }
