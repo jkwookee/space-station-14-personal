@@ -92,6 +92,7 @@
   - type: GuideHelp
     guides:
     - Pumps
+  - type: DeviceRestrictOverlap # Funky
 
 - type: entity
   parent: GasBinaryBase
@@ -166,6 +167,7 @@
     - type: GuideHelp
       guides:
       - Pumps
+    - type: DeviceRestrictOverlap # Funky
     # imp edit start
     - type: VentCrawTube
       containerId: VentCrawTube
@@ -232,6 +234,7 @@
   - type: GuideHelp
     guides:
     - PressureRegulator
+  - type: DeviceRestrictOverlap # Funky
 
 - type: entity
   parent: GasBinaryBase
@@ -274,6 +277,7 @@
     - type: GuideHelp
       guides:
       - PassiveGate
+    - type: DeviceRestrictOverlap # Funky
     # imp edit start
     - type: VentCrawTube
       containerId: VentCrawTube
@@ -341,6 +345,7 @@
     - type: GuideHelp
       guides:
       - ManualValve
+    - type: DeviceRestrictOverlap # Funky
     #imp edit start
     - type: VentCrawTube
       containerId: VentCrawTube
@@ -419,6 +424,7 @@
   - type: GuideHelp
     guides:
     - SignalValve
+  - type: DeviceRestrictOverlap # Funky
   # imp edit start
   - type: VentCrawTube
     containerId: VentCrawTube
@@ -464,6 +470,7 @@
     - type: GuideHelp
       guides:
       - GasCanisters
+    - type: DeviceRestrictOverlap # Funky
     # imp edit start
     - type: VentCrawTube
       containerId: VentCrawTube
@@ -621,7 +628,7 @@
   - type: TegCirculator
 
 - type: entity
-  parent: GasBinaryBase
+  parent: GasPipeNoOverlap # Funky
   id: HeatExchanger
   name: radiator
   description: Transfers heat between the pipe and its surroundings.
@@ -650,6 +657,8 @@
       Tertiary: HeatExchangerAlt2 #imp edit
     #numberOfPipeLayers: 1 #imp edit, use all layers
   - type: SubFloorHide
+    blockInteractions: false
+    blockAmbience: false
     visibleLayers:
     - enum.SubfloorLayers.FirstLayer
   - type: Appearance
@@ -674,6 +683,7 @@
   - type: GuideHelp
     guides:
     - Radiators
+  - type: PipeRestrictOverlap # Funky
   # imp edit start
   - type: PipeAppearance
     sprite:
@@ -712,9 +722,11 @@
     - type: Construction
       graph: GasBinary
       node: bendradiator
+    - type: PipeRestrictOverlap # Funky
     # imp edit start
     - type: AtmosPipeLayers
       alternativePrototypes:
         Primary: HeatExchangerBend #imp edit
         Secondary: HeatExchangerBendAlt1 #imp edit
         Tertiary: HeatExchangerBendAlt2 #imp edit
+    - type: DeviceRestrictOverlap # Funky

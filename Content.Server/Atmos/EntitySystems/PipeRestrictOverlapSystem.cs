@@ -24,14 +24,27 @@ public sealed class PipeRestrictOverlapSystem : EntitySystem
 
     private readonly List<EntityUid> _anchoredEntities = new();
     private EntityQuery<NodeContainerComponent> _nodeContainerQuery;
+    // Goobstation - Allow device-on-pipe stacking
+    private EntityQuery<PipeRestrictOverlapComponent> _restrictOverlapQuery;
+    private EntityQuery<DeviceRestrictOverlapComponent> _deviceRestrictOverlapQuery; // Funky
+
+    public bool StrictPipeStacking = false;
+    public bool StrictDeviceStacking = true; // Funky
 
     /// <inheritdoc/>
     public override void Initialize()
     {
         SubscribeLocalEvent<PipeRestrictOverlapComponent, AnchorStateChangedEvent>(OnAnchorStateChanged);
         SubscribeLocalEvent<PipeRestrictOverlapComponent, AnchorAttemptEvent>(OnAnchorAttempt);
+        // Funky - Added to handle device overlap
+        SubscribeLocalEvent<DeviceRestrictOverlapComponent, AnchorStateChangedEvent>(OnDeviceAnchorStateChanged);
+        SubscribeLocalEvent<DeviceRestrictOverlapComponent, AnchorAttemptEvent>(OnDeviceAnchorAttempt);
+        Subs.CVar(_cfg, CCVars.StrictPipeStacking, (bool val) => {StrictPipeStacking = val;}, false);
 
         _nodeContainerQuery = GetEntityQuery<NodeContainerComponent>();
+        // Goobstation - Allow device-on-pipe stacking
+        _restrictOverlapQuery = GetEntityQuery<PipeRestrictOverlapComponent>();
+        _deviceRestrictOverlapQuery = GetEntityQuery<DeviceRestrictOverlapComponent>();
     }
 
     private void OnAnchorStateChanged(Entity<PipeRestrictOverlapComponent> ent, ref AnchorStateChangedEvent args)
@@ -58,6 +71,34 @@ public sealed class PipeRestrictOverlapSystem : EntitySystem
         if (CheckOverlap((ent, node, xform)))
         {
             _popup.PopupEntity(Loc.GetString("pipe-restrict-overlap-popup-blocked", ("pipe", ent.Owner)), ent, args.User);
+            args.Cancel();
+        }
+    }
+
+    /// <summary>
+    /// Funky
+    /// Checks if the device overlaps with any other devices.
+    /// </summary>
+    private void OnDeviceAnchorStateChanged(Entity<DeviceRestrictOverlapComponent> ent, ref AnchorStateChangedEvent args)
+    {
+        if (!args.Anchored)
+            return;
+
+        if (HasComp<AnchorableComponent>(ent) && CheckDeviceOverlap(ent))
+        {
+            _popup.PopupEntity(Loc.GetString("device-restrict-overlap-popup-blocked", ("device", ent.Owner)), ent);
+            _xform.Unanchor(ent, Transform(ent));
+        }
+    }
+
+    private void OnDeviceAnchorAttempt(Entity<DeviceRestrictOverlapComponent> ent, ref AnchorAttemptEvent args)
+    {
+        if (args.Cancelled)
+            return;
+
+        if (CheckDeviceOverlap(ent))
+        {
+            _popup.PopupEntity(Loc.GetString("device-restrict-overlap-popup-blocked", ("device", ent.Owner)), ent, args.User);
             args.Cancel();
         }
     }
@@ -89,7 +130,82 @@ public sealed class PipeRestrictOverlapSystem : EntitySystem
             if (!_nodeContainerQuery.TryComp(otherEnt, out var otherComp))
                 continue;
 
-            if (PipeNodesOverlap(ent, (otherEnt, otherComp, Transform(otherEnt))))
+            // Goobstation - Allow device-on-pipe stacking
+            if (!_restrictOverlapQuery.HasComp(otherEnt))
+                continue;
+
+            var (overlapping, which) = PipeNodesOverlap(ent, (otherEnt, otherComp, Transform(otherEnt)), takenDirs);
+            takenDirs |= which;
+
+            if (overlapping)
+                return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Funky
+    /// Checks if the device overlaps with any other devices.
+    /// Returns true if it overlaps with another device.
+    /// </summary>
+    [PublicAPI]
+    public bool CheckDeviceOverlap(EntityUid uid)
+    {
+        if (!_deviceRestrictOverlapQuery.HasComp(uid))
+            return false;
+
+        var xform = Transform(uid);
+        if (xform.GridUid is not { } grid || !TryComp<MapGridComponent>(grid, out var gridComp))
+            return false;
+
+        var indices = _map.TileIndicesFor(grid, gridComp, xform.Coordinates);
+        _anchoredEntities.Clear();
+        _map.GetAnchoredEntities((grid, gridComp), indices, _anchoredEntities);
+
+        foreach (var otherEnt in _anchoredEntities)
+        {
+            if (otherEnt == uid)
+                continue;
+
+            if (!_deviceRestrictOverlapQuery.HasComp(otherEnt))
+                continue;
+
+            if (StrictDeviceStacking)
+                return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Funky
+    /// Checks if the device overlaps with any other devices.
+    /// Returns true if it overlaps with another device.
+    /// </summary>
+    [PublicAPI]
+    public bool CheckDeviceOverlap(EntityUid uid)
+    {
+        if (!_deviceRestrictOverlapQuery.HasComp(uid))
+            return false;
+
+        var xform = Transform(uid);
+        if (xform.GridUid is not { } grid || !TryComp<MapGridComponent>(grid, out var gridComp))
+            return false;
+
+        var indices = _map.TileIndicesFor(grid, gridComp, xform.Coordinates);
+        _anchoredEntities.Clear();
+        _map.GetAnchoredEntities((grid, gridComp), indices, _anchoredEntities);
+
+        foreach (var otherEnt in _anchoredEntities)
+        {
+            if (otherEnt == uid)
+                continue;
+
+            if (!_deviceRestrictOverlapQuery.HasComp(otherEnt))
+                continue;
+
+            if (StrictDeviceStacking)
                 return true;
         }
 
