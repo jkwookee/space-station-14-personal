@@ -425,6 +425,7 @@
     - SignalValve
     - CanisterPort
     - FilterGas
+    - ManifoldGas
     - Alarm
     - Sensor
     - SensorPipe

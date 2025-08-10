@@ -1,3 +1,4 @@
+using Content.Shared.FixedPoint;
 using Content.Shared.Physics;
 using Robust.Shared.Physics.Collision.Shapes;
 using Robust.Shared.Prototypes;
@@ -113,6 +114,13 @@ public sealed partial class RCDPrototype : IPrototype
     /// </summary>
     [DataField, ViewVariables(VVAccess.ReadOnly)]
     public RcdRotation Rotation { get; private set; } = RcdRotation.User;
+
+    /// <summary>
+    /// Funky
+    /// Determines whether this prototype uses layered placement (true for traditional placement, false for layered). Only applies to RPD.
+    /// </summary>
+    [DataField, ViewVariables(VVAccess.ReadOnly)]
+    public bool NoLayers { get; private set; } = false;
 }
 
 public enum RcdMode : byte

@@ -1,3 +1,4 @@
+using Content.Shared.Atmos.Components;
 using Content.Shared.RCD.Systems;
 using Robust.Shared.Audio;
 using Robust.Shared.GameStates;
@@ -61,6 +62,14 @@ public sealed partial class RCDComponent : Component
     /// </summary>
     [DataField, AutoNetworkedField]
     public (string Key, Color? Color) PipeColor { get; set; } = ("default", null);
+
+    /// <summary>
+    /// Funkystation
+    /// Stores player rotation
+    /// This is a horrible workaround to the fact eye rotation is not currently networked and required for pipe layering
+    /// </summary>
+    [DataField, AutoNetworkedField]
+    public float? LastKnownEyeRotation { get; set; } = null;
 
     /// <summary>
     /// The direction constructed entities will face upon spawning

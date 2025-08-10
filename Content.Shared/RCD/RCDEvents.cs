@@ -1,3 +1,5 @@
+using Content.Shared.Atmos.Components;
+using Robust.Shared.Map;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Serialization;
 
@@ -6,7 +8,27 @@ namespace Content.Shared.RCD;
 [Serializable, NetSerializable]
 public sealed class RCDSystemMessage(ProtoId<RCDPrototype> protoId) : BoundUserInterfaceMessage
 {
-    public ProtoId<RCDPrototype> ProtoId = protoId;
+    public ProtoId<RCDPrototype> ProtoId;
+
+    public RCDSystemMessage(ProtoId<RCDPrototype> protoId)
+    {
+        ProtoId = protoId;
+    }
+}
+
+// Funky - Added to handle RPD layer selection
+// This is a workaround for the fact eye rotation is not currently networked. Not intended as a permanent solution.
+[Serializable, NetSerializable]
+public sealed class RPDEyeRotationEvent : EntityEventArgs
+{
+    public readonly NetEntity NetEntity;
+    public float? EyeRotation;
+
+    public RPDEyeRotationEvent(NetEntity netEntity, float? eyeRotation)
+    {
+        NetEntity = netEntity;
+        EyeRotation = eyeRotation;
+    }
 }
 
 [Serializable, NetSerializable]
