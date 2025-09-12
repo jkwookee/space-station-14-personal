@@ -16,6 +16,7 @@
   - type: Damageable
     damageContainer: StructuralInorganic
     damageModifierSet: Metallic
+    type: DangerousTemperature
   - type: SubFloorHide
   - type: CollideOnAnchor
   - type: Anchorable
@@ -65,6 +66,11 @@
     bodyType: static
   - type: StaticPrice
     price: 30
+    type: DamageOnInteract
+    damage:
+      types:
+        Heat: 2
+    popupText: dangerous-temperature-component-heat
 
 - type: entity
   abstract: true
