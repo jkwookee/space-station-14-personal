@@ -26,11 +26,8 @@ public sealed partial class RPDMenu : RadialMenu
     private string? _selectedColor;
 
     public event Action<string>? ColorSelected;
-    public event Action<ProtoId<RCDPrototype>>? SendRCDSystemMessageAction
-    {
-        add => _rcdMenu.SendRCDSystemMessageAction += value;
-        remove => _rcdMenu.SendRCDSystemMessageAction -= value;
-    }
+
+    public event Action<ProtoId<RCDPrototype>>? SendRCDSystemMessageAction;
 
     private EntityUid _owner;
 
@@ -78,7 +75,7 @@ public sealed partial class RPDMenu : RadialMenu
             {
                 MinSize = new Vector2(30, 30),
                 MaxSize = new Vector2(30, 30),
-                PanelOverride = color.Value != null 
+                PanelOverride = color.Value != null
                     ? new StyleBoxFlat { BackgroundColor = color.Value.Value }
                     : new StyleBoxFlat { BackgroundColor = Color.Transparent }
             };
