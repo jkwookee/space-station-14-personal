@@ -5,20 +5,21 @@
   placement:
     mode: SnapgridCenter
   components:
-  - type: AtmosDevice
-  - type: Tag
-    tags:
-    - Unstackable
-  - type: SubFloorHide
-    blockInteractions: false
-    blockAmbience: false
-  - type: NodeContainer
-    nodes:
-      pipe:
-        !type:PipeNode
-        nodeGroupID: Pipe
-        pipeDirection: South
-  - type: CollideOnAnchor
+    - type: AtmosDevice
+    - type: Tag
+      tags:
+        - Unstackable
+    - type: SubFloorHide
+      blockInteractions: false
+      blockAmbience: false
+    - type: NodeContainer
+      nodes:
+        pipe:
+          !type:PipeNode
+          nodeGroupID: Pipe
+          pipeDirection: South
+    - type: CollideOnAnchor
+    - type: DeviceRestrictOverlap # Funky
 
 - type: entity
   parent: [GasUnaryBase, AirSensorBase]
