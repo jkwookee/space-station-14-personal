@@ -33,11 +33,12 @@ rcd-component-cannot-build-identical-tile = That tile already exists there!
 
 ### Category names
 
-rcd-component-walls-and-flooring = Walls & Flooring
-rcd-component-windows-and-grilles = Windows & Grilles
+rcd-component-walls-and-flooring = Walls and flooring
+rcd-component-windows-and-grilles = Windows and grilles
 rcd-component-airlocks = Airlocks
 rcd-component-electrical = Electrical
 rcd-component-lighting = Lighting
+
 rcd-component-piping = Piping
 rcd-component-atmosphericutility = Atmospheric Utility
 rcd-component-pumpsvalves = Pumps & Valves
