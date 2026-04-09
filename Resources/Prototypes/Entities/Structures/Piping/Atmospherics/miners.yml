@@ -29,6 +29,7 @@
       sprite: Structures/Piping/Atmospherics/miners.rsi
       state: miner
     - type: AtmosDevice
+      location: BottomRight
     - type: GasMiner
       maxExternalPressure: 300
       spawnAmount: 400

@@ -1,9 +1,11 @@
+using Robust.Shared.GameStates;
+
 namespace Content.Shared.Atmos.Components;
 
 /// <summary>
 ///     Component for atmos devices which are updated in line with atmos, as part of a <see cref="GridAtmosphereComponent"/>
 /// </summary>
-[RegisterComponent]
+[RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
 public sealed partial class AtmosDeviceComponent : Component
 {
     /// <summary>
@@ -37,6 +39,22 @@ public sealed partial class AtmosDeviceComponent : Component
 
     [ViewVariables]
     public TimeSpan LastProcess = TimeSpan.Zero;
+
+    /// <summary>
+    ///     The update order of a device on a grid.
+    /// </summary>
+    [AutoNetworkedField]
+    public int DeviceOrder = -1;
+
+    /// <summary>
+    ///     Location of order number in the atmos device order overlay.
+    ///     Use <see cref="OrderOverlayLocation.TopRight"/> for atmos devices that have the Unstackable tag (default).
+    ///     Use <see cref="OrderOverlayLocation.TopLeft"/> for portable atmos devices such as gas canisters and space heaters.
+    ///     Use <see cref="OrderOverlayLocation.BottomRight"/> for gas miners.
+    ///     Use <see cref="OrderOverlayLocation.BottomLeft"/> for air alarms.
+    /// </summary>
+    [AutoNetworkedField]
+    public OrderOverlayLocation Location = OrderOverlayLocation.TopLeft;
 }
 
 /// <summary>
@@ -63,4 +81,12 @@ public readonly struct AtmosDeviceUpdateEvent(float dt, Entity<GridAtmosphereCom
     /// The map that the device & grid is on.
     /// </summary>
     public readonly Entity<MapAtmosphereComponent?>? Map = map;
+}
+
+public enum OrderOverlayLocation
+{
+    TopRight,
+    TopLeft,
+    BottomRight,
+    BottomLeft,
 }

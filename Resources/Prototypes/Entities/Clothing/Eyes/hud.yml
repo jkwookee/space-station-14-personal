@@ -40,6 +40,7 @@
     - Inorganic
     - Silicon
   - type: ShowAccessReaderSettings
+  - type: DeviceOrderOverlay
 
 - type: entity
   parent: [ClothingEyesHudBase, ShowMedicalIcons]

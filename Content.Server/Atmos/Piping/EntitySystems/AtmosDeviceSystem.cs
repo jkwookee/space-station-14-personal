@@ -5,10 +5,12 @@ using JetBrains.Annotations;
 using Robust.Shared.Timing;
 using Robust.Shared.Utility;
 
+using Content.Shared.Atmos.Piping.EntitySystems;
+
 namespace Content.Server.Atmos.Piping.EntitySystems
 {
     [UsedImplicitly]
-    public sealed class AtmosDeviceSystem : EntitySystem
+    public sealed class AtmosDeviceSystem : SharedAtmosDeviceSystem
     {
         [Dependency] private readonly IGameTiming _gameTiming = default!;
         [Dependency] private readonly AtmosphereSystem _atmosphereSystem = default!;
@@ -51,6 +53,8 @@ namespace Content.Server.Atmos.Piping.EntitySystems
             // Attempt to add device to a grid atmosphere.
             bool onGrid = (transform.GridUid != null) && _atmosphereSystem.AddAtmosDevice(transform.GridUid!.Value, ent);
 
+            UpdateDeviceOrders(ent);
+
             if (!onGrid && component.JoinSystem)
             {
                 _joinedDevices.Add(ent);
@@ -64,6 +68,10 @@ namespace Content.Server.Atmos.Piping.EntitySystems
         public void LeaveAtmosphere(Entity<AtmosDeviceComponent> ent)
         {
             var component = ent.Comp;
+
+            component.DeviceOrder = -1;
+            Dirty(ent, component);
+
             // Try to remove the component from an atmosphere, and if not
             if (component.JoinedGrid != null && !_atmosphereSystem.RemoveAtmosDevice(component.JoinedGrid.Value, ent))
             {
@@ -145,6 +153,23 @@ namespace Content.Server.Atmos.Piping.EntitySystems
         public bool IsJoinedOffGrid(Entity<AtmosDeviceComponent> device)
         {
             return _joinedDevices.Contains(device);
+        }
+
+        private void UpdateDeviceOrders(Entity<AtmosDeviceComponent> ent)
+        {
+            if (ent.Comp.JoinedGrid is not { } gridUid || !TryComp<GridAtmosphereComponent>(gridUid, out var gridAtmos))
+                return;
+
+            var index = 1;
+            foreach (var device in gridAtmos.AtmosDevices)
+            {
+                if (!TryComp<AtmosDeviceComponent>(device, out var comp))
+                    continue;
+
+                comp.DeviceOrder = index;
+                index++;
+                Dirty(device, comp);
+            }
         }
     }
 }
