@@ -1,4 +1,5 @@
 using Robust.Shared.GameStates;
+using Robust.Shared.Serialization;
 
 namespace Content.Shared.Atmos.Components;
 
@@ -83,7 +84,8 @@ public readonly struct AtmosDeviceUpdateEvent(float dt, Entity<GridAtmosphereCom
     public readonly Entity<MapAtmosphereComponent?>? Map = map;
 }
 
-public enum OrderOverlayLocation
+// [Serializable, NetSerializable]
+public enum OrderOverlayLocation : byte
 {
     TopRight,
     TopLeft,

@@ -1,68 +1,101 @@
 using Content.Shared.Atmos.Components;
+using Robust.Client.GameObjects;
 using Robust.Client.Graphics;
 using Robust.Client.ResourceManagement;
 using Robust.Shared.Enums;
-using Robust.Shared.Map;
+using Robust.Shared.Timing;
+using Robust.Shared.Utility;
 using System.Numerics;
 
 namespace Content.Client.Atmos.Overlays;
 
 public sealed class AtmosDeviceOrderOverlay : Overlay
 {
-    [Dependency] private readonly IEntityManager _entManager = default!;
+    [Dependency] private readonly IEntityManager _entityManager = default!;
     [Dependency] private readonly IResourceCache _resourceCache = default!;
-    [Dependency] private readonly IEyeManager _eyeManager = default!;
+    [Dependency] private readonly IGameTiming _timing = default!;
+    private readonly SpriteSystem _sprite;
 
-    private readonly SharedTransformSystem _xformSys;
-    private readonly Font _font;
+    private readonly TransformSystem _transform;
+    private readonly Texture[] _digitTextures = new Texture[10];
 
-    public override OverlaySpace Space => OverlaySpace.ScreenSpace;
+    public override OverlaySpace Space => OverlaySpace.WorldSpaceBelowFOV;
 
     public AtmosDeviceOrderOverlay()
     {
         IoCManager.InjectDependencies(this);
-        _xformSys = _entManager.System<SharedTransformSystem>();
-        _font = new VectorFont(_resourceCache.GetResource<FontResource>("/Fonts/NotoSans/NotoSans-Regular.ttf"), 12);
+        _sprite = _entityManager.System<SpriteSystem>();
+        _transform = _entityManager.System<TransformSystem>();
+        var rsi = _resourceCache.GetResource<RSIResource>(
+        new ResPath("Textures/Interface/Alerts/generic_counter.rsi")).RSI;
+        for (var i = 0; i < 10; i++)
+            _digitTextures[i] = rsi[$"{i}"].Frame0;
     }
 
     protected override void Draw(in OverlayDrawArgs args)
     {
-        if (args.Space != OverlaySpace.ScreenSpace)
-            return;
+        var handle = args.WorldHandle;
 
-        if (args.MapId == MapId.Nullspace)
-            return;
+        var eyeRot = args.Viewport.Eye?.Rotation ?? default;
 
-        var eye = _eyeManager.CurrentEye;
+        var xformQuery = _entityManager.GetEntityQuery<TransformComponent>();
+        var scaleMatrix = Matrix3Helpers.CreateScale(new Vector2(1, 1));
+        var rotationMatrix = Matrix3Helpers.CreateRotation(-eyeRot);
 
-        var query = _entManager.EntityQueryEnumerator<AtmosDeviceComponent, TransformComponent>();
-        while (query.MoveNext(out _, out var atmos, out var xform))
+        var query = _entityManager.AllEntityQueryEnumerator<AtmosDeviceComponent, SpriteComponent, TransformComponent>();
+        while (query.MoveNext(out var uid, out var comp, out var sprite, out var xform))
         {
-            if (atmos.DeviceOrder == -1)
+            if (xform.MapID != args.MapId || !sprite.Visible)
                 continue;
 
-            if (xform.MapID != args.MapId)
+            var bounds = _sprite.GetLocalBounds((uid, sprite));
+
+            var worldPos = _transform.GetWorldPosition(xform, xformQuery);
+
+            if (!bounds.Translated(worldPos).Intersects(args.WorldAABB))
                 continue;
 
-            var worldPos = _xformSys.GetWorldPosition(xform);
-            if (!args.WorldBounds.Contains(worldPos))
+            var deviceOrder = comp.DeviceOrder;
+            if (deviceOrder == -1)
                 continue;
 
-            // Check if within the eye's draw FOV
-            if (!eye.DrawFov)
-                continue;
+            var worldMatrix = Matrix3Helpers.CreateTranslation(worldPos);
+            var scaledWorld = Matrix3x2.Multiply(scaleMatrix, worldMatrix);
+            var matty = Matrix3x2.Multiply(rotationMatrix, scaledWorld);
+            handle.SetTransform(matty);
 
-            var anchorOffset = atmos.Location switch
+            var curTime = _timing.RealTime;
+            // var texture = _sprite.GetFrame(proto.Icon, curTime);
+
+            float yOffset;
+            float xOffset;
+
+            // if (texture.Height > _sprite.GetLocalBounds((uid, sprite)).Height * EyeManager.PixelsPerMeter)
+            //     break;
+
+            var offset = comp.Location switch
             {
-                OrderOverlayLocation.TopRight => new Vector2(0.4f, 0.4f),
-                OrderOverlayLocation.TopLeft => new Vector2(-0.4f, 0.4f),
-                OrderOverlayLocation.BottomRight => new Vector2(0.4f, -0.4f),
-                OrderOverlayLocation.BottomLeft => new Vector2(-0.4f, -0.4f),
-                _ => new Vector2(0.4f, 0.4f),
+                OrderOverlayLocation.TopRight => new Vector2(4, 4),
+                OrderOverlayLocation.TopLeft => new Vector2(-4, 4),
+                OrderOverlayLocation.BottomRight => new Vector2(4, -4),
+                OrderOverlayLocation.BottomLeft => new Vector2(-4, -4),
+                _ => new Vector2(4f, 4f),
             };
 
-            var screenPos = args.Viewport.WorldToLocal(worldPos + anchorOffset);
-            args.ScreenHandle.DrawString(_font, screenPos, atmos.DeviceOrder.ToString(), Color.Cyan);
+            yOffset = (bounds.Height + sprite.Offset.Y) / 2f + offset.Y / EyeManager.PixelsPerMeter;
+            xOffset = -(bounds.Width + sprite.Offset.X) / 2f + offset.X / EyeManager.PixelsPerMeter;
+
+            var position = new Vector2(xOffset, yOffset);
+
+            var digits = deviceOrder.ToString();
+            var texWidth = _digitTextures[0].Width / (float)EyeManager.PixelsPerMeter;
+            for (var d = 0; d < digits.Length; d++)
+            {
+                var digit = digits[d] - '0';
+                handle.DrawTexture(_digitTextures[digit], position + new Vector2(d * texWidth, 0));
+            }
+
+            handle.SetTransform(Matrix3x2.Identity);
         }
     }
 }
