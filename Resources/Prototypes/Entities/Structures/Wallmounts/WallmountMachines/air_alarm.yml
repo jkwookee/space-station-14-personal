@@ -46,6 +46,7 @@
     tags:
       - AirAlarm
   - type: AtmosDevice
+    location: BottomLeft
   - type: AirAlarm
   - type: AtmosAlertsDevice
     group: AirAlarm

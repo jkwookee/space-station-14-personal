@@ -235,6 +235,7 @@
           Secondary: Structures/Piping/Atmospherics/thermomachine_alt1.rsi
           Tertiary: Structures/Piping/Atmospherics/thermomachine_alt2.rsi
     - type: AtmosDevice
+      location: TopLeft
     - type: UserInterface
       interfaces:
         enum.ThermomachineUiKey.Key:

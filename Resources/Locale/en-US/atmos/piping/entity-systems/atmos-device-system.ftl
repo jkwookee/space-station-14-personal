@@ -1,1 +1,1 @@
-atmos-device-examine-order = It is device order #{ $deviceOrder }
+atmos-device-examine-order = It is #{ $deviceOrder } in the device order.

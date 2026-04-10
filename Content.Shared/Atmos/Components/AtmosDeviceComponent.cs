@@ -42,7 +42,7 @@ public sealed partial class AtmosDeviceComponent : Component
     public TimeSpan LastProcess = TimeSpan.Zero;
 
     /// <summary>
-    ///     The update order of a device on a grid.
+    ///     The place of a device in the update order on a grid.
     /// </summary>
     [AutoNetworkedField]
     public int DeviceOrder = -1;
@@ -54,8 +54,8 @@ public sealed partial class AtmosDeviceComponent : Component
     ///     Use <see cref="OrderOverlayLocation.BottomRight"/> for gas miners.
     ///     Use <see cref="OrderOverlayLocation.BottomLeft"/> for air alarms.
     /// </summary>
-    [AutoNetworkedField]
-    public OrderOverlayLocation Location = OrderOverlayLocation.TopLeft;
+    [DataField, AutoNetworkedField]
+    public OrderOverlayLocation Location = OrderOverlayLocation.TopRight;
 }
 
 /// <summary>
