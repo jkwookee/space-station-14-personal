@@ -19,8 +19,7 @@ public sealed class AtmosDeviceOrderOverlay : Overlay
     private const string DigitRSIPath = "/Textures/Interface/Alerts/generic_counter.rsi";
     private const int SpritePixelWidth = 6; // Pixel width of digit sprites
     private const int SpritePixelHeight = 9; // Pixel height of digit sprites
-    private const float Offset = 0.45f;
-    private const float DigitScale = 1f; // Scaling of digit sprite size
+    private const float DigitScale = 0.8f; // Scaling of digit sprite size
     public override OverlaySpace Space => OverlaySpace.WorldSpaceBelowFOV;
 
     public AtmosDeviceOrderOverlay()
@@ -82,15 +81,15 @@ public sealed class AtmosDeviceOrderOverlay : Overlay
 
             var xOffset = comp.Location switch
             {
-                OrderOverlayLocation.TopLeft or OrderOverlayLocation.BottomLeft => -Offset,
-                _ => Offset - totalWidth,
+                OrderOverlayLocation.TopLeft or OrderOverlayLocation.BottomLeft => -bounds.Width / 2f,
+                _ => bounds.Width / 2f - totalWidth,
             };
 
             // yOffset has its origins at the top of the sprite, oddly
             var yOffset = comp.Location switch
             {
-                OrderOverlayLocation.TopLeft or OrderOverlayLocation.TopRight => -Offset + digitHeight,
-                _ => -Offset * 1.5f, // Magic number to scale it properly due to oddities
+                OrderOverlayLocation.TopLeft or OrderOverlayLocation.TopRight => -digitHeight * DigitScale,
+                _ => (-bounds.Height / 2f - digitHeight) * DigitScale,
             };
 
             var position = new Vector2(xOffset, yOffset);
