@@ -1,5 +1,4 @@
 using Robust.Shared.GameStates;
-using Robust.Shared.Serialization;
 
 namespace Content.Shared.Atmos.Components;
 
@@ -54,7 +53,7 @@ public sealed partial class AtmosDeviceComponent : Component
     ///     Use <see cref="OrderOverlayLocation.BottomRight"/> for portable atmos devices such as gas canisters and space heaters.
     ///     Use <see cref="OrderOverlayLocation.BottomLeft"/> for air alarms and gas miners.
     /// </summary>
-    [ViewVariables, AutoNetworkedField]
+    [DataField, AutoNetworkedField]
     public OrderOverlayLocation Location = OrderOverlayLocation.TopRight;
 }
 
@@ -84,7 +83,6 @@ public readonly struct AtmosDeviceUpdateEvent(float dt, Entity<GridAtmosphereCom
     public readonly Entity<MapAtmosphereComponent?>? Map = map;
 }
 
-// [Serializable, NetSerializable]
 public enum OrderOverlayLocation : byte
 {
     TopRight,
