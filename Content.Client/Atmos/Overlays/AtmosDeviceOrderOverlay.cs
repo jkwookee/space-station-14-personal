@@ -17,9 +17,11 @@ public sealed class AtmosDeviceOrderOverlay : Overlay
     private readonly Texture[] _textures;
     private const int Digits = 10;
     private const string DigitRSIPath = "/Textures/Interface/Alerts/generic_counter.rsi";
+    // private const string DigitColor = "#dceb0c";
+    private const float DigitScale = 0.75f; // Scaling of digit sprite size
     private const int SpritePixelWidth = 6; // Pixel width of digit sprites
     private const int SpritePixelHeight = 9; // Pixel height of digit sprites
-    private const float DigitScale = 0.8f; // Scaling of digit sprite size
+    private const int HeightUntilSprite = 12; // Pixel difference from the top left of the png to the actual sprite
     public override OverlaySpace Space => OverlaySpace.WorldSpaceBelowFOV;
 
     public AtmosDeviceOrderOverlay()
@@ -74,22 +76,22 @@ public sealed class AtmosDeviceOrderOverlay : Overlay
             var digits = deviceOrder.ToString();
             var length = digits.Length;
 
-            // Conversion from pixels to meters scaled
+            // Conversion from pixels to meters
             var digitWidth = SpritePixelWidth * (1f / EyeManager.PixelsPerMeter);
-            var digitHeight = SpritePixelHeight * (1f / EyeManager.PixelsPerMeter);
             var totalWidth = length * digitWidth;
+            var digitHeight = SpritePixelHeight * (1f / EyeManager.PixelsPerMeter);
+            var digitHeightUntilSprite = HeightUntilSprite * (1f / EyeManager.PixelsPerMeter);
 
             var xOffset = comp.Location switch
             {
-                OrderOverlayLocation.TopLeft or OrderOverlayLocation.BottomLeft => -bounds.Width / 2f,
-                _ => bounds.Width / 2f - totalWidth,
+                OrderOverlayLocation.TopRight or OrderOverlayLocation.BottomRight => bounds.Width / 2f / DigitScale - totalWidth,
+                _ => -bounds.Width / 2f / DigitScale,
             };
 
-            // yOffset has its origins at the top of the sprite, oddly
             var yOffset = comp.Location switch
             {
-                OrderOverlayLocation.TopLeft or OrderOverlayLocation.TopRight => -digitHeight * DigitScale,
-                _ => (-bounds.Height / 2f - digitHeight) * DigitScale,
+                OrderOverlayLocation.BottomLeft or OrderOverlayLocation.BottomRight => -bounds.Height / 2f / DigitScale - digitHeightUntilSprite,
+                _ => bounds.Height / 2f / DigitScale - digitHeight - digitHeightUntilSprite,
             };
 
             var position = new Vector2(xOffset, yOffset);
@@ -100,6 +102,7 @@ public sealed class AtmosDeviceOrderOverlay : Overlay
                 var digit = _textures[digits[i] - '0']; // Subtracting by ASCII value for correct index
 
                 handle.DrawTexture(digit, pos, Color.Orange);
+                // handle.DrawTexture(digit, pos, Color.FromHex(DigitColor));
             }
 
             handle.SetTransform(Matrix3x2.Identity);

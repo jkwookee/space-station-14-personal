@@ -102,7 +102,7 @@
     - type: AtmosDevice
       requireAnchored: false
       joinSystem: true
-      location: TopLeft
+      location: BottomRight
     - type: ContainerContainer
       containers:
         tank_slot: !type:ContainerSlot {}

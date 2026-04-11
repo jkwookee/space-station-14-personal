@@ -3,6 +3,8 @@ using Content.Shared.Atmos.EntitySystems;
 using Content.Shared.Atmos.Serialization;
 using Content.Shared.NodeContainer.NodeGroups;
 
+using Content.Shared.Atmos.Piping.EntitySystems;
+
 namespace Content.Shared.Atmos.Components;
 
 /// <summary>
@@ -11,7 +13,7 @@ namespace Content.Shared.Atmos.Components;
 /// instead of trying to scour this component or others for the data you need.
 /// </summary>
 [RegisterComponent, Serializable,
- Access(typeof(SharedAtmosphereSystem), typeof(SharedGasTileOverlaySystem), typeof(SharedAtmosDebugOverlaySystem))]
+ Access(typeof(SharedAtmosphereSystem), typeof(SharedGasTileOverlaySystem), typeof(SharedAtmosDebugOverlaySystem), typeof(SharedAtmosDeviceSystem))]
 public sealed partial class GridAtmosphereComponent : Component
 {
     /// <summary>
@@ -48,7 +50,7 @@ public sealed partial class GridAtmosphereComponent : Component
     public int UpdateCounter = 1;
 
     [ViewVariables]
-    [IncludeDataField(customTypeSerializer:typeof(TileAtmosCollectionSerializer))]
+    [IncludeDataField(customTypeSerializer: typeof(TileAtmosCollectionSerializer))]
     public Dictionary<Vector2i, TileAtmosphere> Tiles = new(1000);
 
     [ViewVariables]
@@ -152,4 +154,10 @@ public sealed partial class GridAtmosphereComponent : Component
 
     [ViewVariables]
     public AtmosphereProcessingState State { get; set; } = AtmosphereProcessingState.Revalidate;
+
+    [ViewVariables]
+    public readonly Stack<int> RemainingDeviceOrders = new();
+
+    [ViewVariables]
+    public int HighestOrder = 0;
 }

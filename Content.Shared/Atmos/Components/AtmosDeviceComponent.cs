@@ -44,17 +44,17 @@ public sealed partial class AtmosDeviceComponent : Component
     /// <summary>
     ///     The place of a device in the update order on a grid.
     /// </summary>
-    [AutoNetworkedField]
+    [ViewVariables, AutoNetworkedField]
     public int DeviceOrder = -1;
 
     /// <summary>
     ///     Location of order number in the atmos device order overlay.
     ///     Use <see cref="OrderOverlayLocation.TopRight"/> for atmos devices that have the Unstackable tag (default).
-    ///     Use <see cref="OrderOverlayLocation.TopLeft"/> for portable atmos devices such as gas canisters and space heaters.
-    ///     Use <see cref="OrderOverlayLocation.BottomRight"/> for gas miners.
-    ///     Use <see cref="OrderOverlayLocation.BottomLeft"/> for air alarms.
+    ///     Use <see cref="OrderOverlayLocation.TopLeft"/> for devices that are not set.
+    ///     Use <see cref="OrderOverlayLocation.BottomRight"/> for portable atmos devices such as gas canisters and space heaters.
+    ///     Use <see cref="OrderOverlayLocation.BottomLeft"/> for air alarms and gas miners.
     /// </summary>
-    [DataField, AutoNetworkedField]
+    [ViewVariables, AutoNetworkedField]
     public OrderOverlayLocation Location = OrderOverlayLocation.TopRight;
 }
 

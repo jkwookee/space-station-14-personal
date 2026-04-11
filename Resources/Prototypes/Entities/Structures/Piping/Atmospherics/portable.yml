@@ -10,7 +10,7 @@
     bodyType: Dynamic
   - type: AtmosDevice
     joinSystem: true
-    location: TopLeft
+    location: BottomRight
   - type: Fixtures
     fixtures:
       fix1:
@@ -114,7 +114,7 @@
     bodyType: Dynamic
   - type: AtmosDevice
     joinSystem: true
-    location: TopLeft
+    location: BottomRight
   - type: Fixtures
     fixtures:
       fix1:

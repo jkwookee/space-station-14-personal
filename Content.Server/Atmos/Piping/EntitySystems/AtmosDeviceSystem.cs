@@ -69,6 +69,9 @@ namespace Content.Server.Atmos.Piping.EntitySystems
         {
             var component = ent.Comp;
 
+            if (component.JoinedGrid is { } gridUid && TryComp<GridAtmosphereComponent>(gridUid, out var gridAtmos))
+                gridAtmos.RemainingDeviceOrders.Push(component.DeviceOrder);
+
             component.DeviceOrder = -1;
             Dirty(ent, component);
 
@@ -160,16 +163,16 @@ namespace Content.Server.Atmos.Piping.EntitySystems
             if (ent.Comp.JoinedGrid is not { } gridUid || !TryComp<GridAtmosphereComponent>(gridUid, out var gridAtmos))
                 return;
 
-            var index = 1;
-            foreach (var device in gridAtmos.AtmosDevices)
+            if (gridAtmos.RemainingDeviceOrders.TryPop(out var lastDeviceOrder))
+                ent.Comp.DeviceOrder = lastDeviceOrder;
+            else
             {
-                if (!TryComp<AtmosDeviceComponent>(device, out var comp))
-                    continue;
+                gridAtmos.HighestOrder++;
 
-                comp.DeviceOrder = index;
-                index++;
-                Dirty(device, comp);
+                ent.Comp.DeviceOrder = gridAtmos.HighestOrder;
             }
+
+            Dirty(ent, ent.Comp);
         }
     }
 }
