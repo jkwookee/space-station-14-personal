@@ -3,7 +3,7 @@ using Content.Shared.Atmos.EntitySystems;
 using Content.Shared.Atmos.Serialization;
 using Content.Shared.NodeContainer.NodeGroups;
 
-using Content.Shared.Atmos.Piping.EntitySystems;
+using Content.Shared.Atmos.Piping.EntitySystems; // Imp
 
 namespace Content.Shared.Atmos.Components;
 
@@ -13,7 +13,7 @@ namespace Content.Shared.Atmos.Components;
 /// instead of trying to scour this component or others for the data you need.
 /// </summary>
 [RegisterComponent, Serializable,
- Access(typeof(SharedAtmosphereSystem), typeof(SharedGasTileOverlaySystem), typeof(SharedAtmosDebugOverlaySystem), typeof(SharedAtmosDeviceSystem))]
+ Access(typeof(SharedAtmosphereSystem), typeof(SharedGasTileOverlaySystem), typeof(SharedAtmosDebugOverlaySystem), typeof(SharedAtmosDeviceSystem))] // Imp, added Access for SharedAtmosDeviceSystem
 public sealed partial class GridAtmosphereComponent : Component
 {
     /// <summary>
@@ -50,7 +50,7 @@ public sealed partial class GridAtmosphereComponent : Component
     public int UpdateCounter = 1;
 
     [ViewVariables]
-    [IncludeDataField(customTypeSerializer: typeof(TileAtmosCollectionSerializer))]
+    [IncludeDataField(customTypeSerializer:typeof(TileAtmosCollectionSerializer))]
     public Dictionary<Vector2i, TileAtmosphere> Tiles = new(1000);
 
     [ViewVariables]
@@ -155,9 +155,17 @@ public sealed partial class GridAtmosphereComponent : Component
     [ViewVariables]
     public AtmosphereProcessingState State { get; set; } = AtmosphereProcessingState.Revalidate;
 
+    /// <summary>
+    /// Imp
+    /// Stack of devices orders that have left the grid.
+    /// </summary>
     [ViewVariables]
     public readonly Stack<int> RemainingDeviceOrders = new();
 
+    /// <summary>
+    /// Imp
+    /// Highest device order on the grid.
+    /// </summary>
     [ViewVariables]
     public int HighestOrder = 0;
 }

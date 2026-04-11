@@ -1,11 +1,11 @@
-using Robust.Shared.GameStates;
+using Robust.Shared.GameStates; // Imp
 
 namespace Content.Shared.Atmos.Components;
 
 /// <summary>
 ///     Component for atmos devices which are updated in line with atmos, as part of a <see cref="GridAtmosphereComponent"/>
 /// </summary>
-[RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
+[RegisterComponent, NetworkedComponent, AutoGenerateComponentState] // Imp, added NetworkedComponent and AutoGenerateComponentState
 public sealed partial class AtmosDeviceComponent : Component
 {
     /// <summary>
@@ -41,18 +41,22 @@ public sealed partial class AtmosDeviceComponent : Component
     public TimeSpan LastProcess = TimeSpan.Zero;
 
     /// <summary>
+    ///     Imp
     ///     The place of a device in the update order on a grid.
     /// </summary>
     [ViewVariables, AutoNetworkedField]
     public int DeviceOrder = -1;
 
     /// <summary>
+    ///     Imp
     ///     Location of order number in the atmos device order overlay.
-    ///     Use <see cref="OrderOverlayLocation.TopRight"/> for atmos devices that have the Unstackable tag (default).
-    ///     Use <see cref="OrderOverlayLocation.TopLeft"/> for devices that are not set.
-    ///     Use <see cref="OrderOverlayLocation.BottomRight"/> for portable atmos devices such as gas canisters and space heaters.
-    ///     Use <see cref="OrderOverlayLocation.BottomLeft"/> for air alarms and gas miners.
     /// </summary>
+    /// <remarks>
+    ///     Use <see cref="OrderOverlayLocation.TopRight"/> for atmos devices that have the Unstackable tag (default).
+    ///     Use <see cref="OrderOverlayLocation.TopLeft"/> for stacking atmos devices. Tertiary Layer.
+    ///     Use <see cref="OrderOverlayLocation.BottomRight"/> for stacking atmos devices. Secondary Layer.
+    ///     Use <see cref="OrderOverlayLocation.BottomLeft"/> for portable, wall attatched, and stacking atmos devices. Primary Layer.
+    /// </remarks>
     [DataField, AutoNetworkedField]
     public OrderOverlayLocation Location = OrderOverlayLocation.TopRight;
 }
@@ -83,6 +87,7 @@ public readonly struct AtmosDeviceUpdateEvent(float dt, Entity<GridAtmosphereCom
     public readonly Entity<MapAtmosphereComponent?>? Map = map;
 }
 
+// Imp start
 public enum OrderOverlayLocation : byte
 {
     TopRight,
@@ -90,3 +95,4 @@ public enum OrderOverlayLocation : byte
     BottomRight,
     BottomLeft,
 }
+// Imp end

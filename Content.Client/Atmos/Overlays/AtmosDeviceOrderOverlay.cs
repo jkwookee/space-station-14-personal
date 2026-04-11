@@ -16,12 +16,12 @@ public sealed class AtmosDeviceOrderOverlay : Overlay
     private readonly TransformSystem _transform;
     private readonly Texture[] _textures;
     private const int Digits = 10;
-    private const string DigitRSIPath = "/Textures/Interface/Alerts/generic_counter.rsi";
+    private const string DigitRSIPath = "/Textures/Effects/text.rsi";
     // private const string DigitColor = "#dceb0c";
-    private const float DigitScale = 0.75f; // Scaling of digit sprite size
-    private const int SpritePixelWidth = 6; // Pixel width of digit sprites
-    private const int SpritePixelHeight = 9; // Pixel height of digit sprites
-    private const int HeightUntilSprite = 12; // Pixel difference from the top left of the png to the actual sprite
+    private const float DigitScale = 1.25f; // Scaling of digit sprite size
+    private const int SpritePixelWidth = 4; // Pixel width of digit sprites
+    private const int SpritePixelHeight = 6; // Pixel height of digit sprites
+    private const int HeightUntilSprite = 0; // Pixel difference from the top left of the png to the actual sprite
     public override OverlaySpace Space => OverlaySpace.WorldSpaceBelowFOV;
 
     public AtmosDeviceOrderOverlay()
