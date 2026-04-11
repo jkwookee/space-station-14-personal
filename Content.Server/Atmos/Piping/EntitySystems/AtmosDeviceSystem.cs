@@ -5,10 +5,12 @@ using JetBrains.Annotations;
 using Robust.Shared.Timing;
 using Robust.Shared.Utility;
 
+using Content.Shared.Atmos.Piping.EntitySystems; // Imp
+
 namespace Content.Server.Atmos.Piping.EntitySystems
 {
     [UsedImplicitly]
-    public sealed class AtmosDeviceSystem : EntitySystem
+    public sealed class AtmosDeviceSystem : SharedAtmosDeviceSystem // Imp, inheritance changed from EntitySystem
     {
         [Dependency] private readonly IGameTiming _gameTiming = default!;
         [Dependency] private readonly AtmosphereSystem _atmosphereSystem = default!;
@@ -51,6 +53,8 @@ namespace Content.Server.Atmos.Piping.EntitySystems
             // Attempt to add device to a grid atmosphere.
             bool onGrid = (transform.GridUid != null) && _atmosphereSystem.AddAtmosDevice(transform.GridUid!.Value, ent);
 
+            UpdateDeviceOrders(ent); // Imp
+
             if (!onGrid && component.JoinSystem)
             {
                 _joinedDevices.Add(ent);
@@ -64,6 +68,15 @@ namespace Content.Server.Atmos.Piping.EntitySystems
         public void LeaveAtmosphere(Entity<AtmosDeviceComponent> ent)
         {
             var component = ent.Comp;
+
+            // Imp start
+            if (component.JoinedGrid is { } gridUid && TryComp<GridAtmosphereComponent>(gridUid, out var gridAtmos))
+                gridAtmos.RemainingDeviceOrders.Push(component.DeviceOrder);
+
+            component.DeviceOrder = -1;
+            Dirty(ent, component);
+            // Imp end
+
             // Try to remove the component from an atmosphere, and if not
             if (component.JoinedGrid != null && !_atmosphereSystem.RemoveAtmosDevice(component.JoinedGrid.Value, ent))
             {
@@ -146,5 +159,24 @@ namespace Content.Server.Atmos.Piping.EntitySystems
         {
             return _joinedDevices.Contains(device);
         }
+
+        // Imp start
+        private void UpdateDeviceOrders(Entity<AtmosDeviceComponent> ent)
+        {
+            if (ent.Comp.JoinedGrid is not { } gridUid || !TryComp<GridAtmosphereComponent>(gridUid, out var gridAtmos))
+                return;
+
+            if (gridAtmos.RemainingDeviceOrders.TryPop(out var lastDeviceOrder))
+                ent.Comp.DeviceOrder = lastDeviceOrder;
+            else
+            {
+                gridAtmos.HighestOrder++;
+
+                ent.Comp.DeviceOrder = gridAtmos.HighestOrder;
+            }
+
+            Dirty(ent, ent.Comp);
+        }
+        // Imp end
     }
 }

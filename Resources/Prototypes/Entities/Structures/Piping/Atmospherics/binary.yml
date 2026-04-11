@@ -613,6 +613,7 @@
   - type: Appearance
   - type: PipeColorVisuals
   - type: AtmosDevice
+    location: BottomLeft # Imp
   - type: HeatExchanger
   - type: NodeContainer
     nodes:

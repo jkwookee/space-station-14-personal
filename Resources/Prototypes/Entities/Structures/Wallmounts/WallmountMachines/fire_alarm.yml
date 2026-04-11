@@ -21,6 +21,7 @@
   - type: WiredNetworkConnection
   - type: DeviceNetworkRequiresPower
   - type: AtmosDevice
+    location: BottomLeft # Imp
   - type: AtmosAlarmable
     syncWith:
       - FireAlarm
