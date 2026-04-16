@@ -26,3 +26,5 @@
         - AntagImmune
       mindRoles:
       - MindRoleChangeling
+  - type: DynamicRuleCost # Imp
+    cost: 100 # Imp

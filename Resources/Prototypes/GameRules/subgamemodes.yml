@@ -70,6 +70,8 @@
         nameFormat: name-format-wizard
       mindRoles:
       - MindRoleWizard
+  - type: DynamicRuleCost # Imp
+    cost: 150 # Imp
 
 - type: entity
   parent: BaseGameRule

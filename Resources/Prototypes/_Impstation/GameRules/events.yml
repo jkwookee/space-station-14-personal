@@ -29,6 +29,8 @@
         sound: "/Audio/_Goobstation/Ambience/Antag/changeling_start.ogg"
       mindRoles:
       - MindRoleChangeling
+  - type: DynamicRuleCost
+    cost: 75
 
 # Bounty Hunter
 - type: entity
@@ -74,6 +76,8 @@
         nameFormat: name-format-bounty-hunter
       - type: RandomHumanoidAppearance
         randomizeName: false
+    - type: DynamicRuleCost
+      cost: 75
 
 #vrex
 - type: entity
@@ -90,6 +94,8 @@
     specialEntries:
     - id: SpawnPointGhostVRex
       prob: 0 # this ensures that only one spawner will be created
+  - type: DynamicRuleCost
+    cost: 75
 
 #my oppa
 - type: entity
@@ -173,6 +179,8 @@
       min: 1
       max: 1
       prob: 0.01
+  - type: DynamicRuleCost
+    cost: 75
 
 # tourist shuttles. Spawn weight for them might need to be reduced
 - type: entityTable

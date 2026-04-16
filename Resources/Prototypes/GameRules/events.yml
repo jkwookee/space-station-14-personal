@@ -357,6 +357,8 @@
     minimumPlayers: 20
   - type: RandomSpawnRule
     prototype: MobRevenant
+  - type: DynamicRuleCost # Imp
+    cost: 50 # Imp
 
 - type: entity
   parent: BaseWizardRule
@@ -394,8 +396,9 @@
         - NamesWizardFirst
         - NamesWizardLast
         nameFormat: name-format-wizard
-      mindRoles:
       - MindRoleWizard
+  - type: DynamicRuleCost # Imp
+    cost: 150 # Imp
 
 # disabled until event is rewritten to be more interesting
 #- type: entity

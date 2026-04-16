@@ -111,7 +111,7 @@
   - multiantag
   - director
   name: dynamic-title
-  showInVote: true
+  showInVote: false # imp, admin testing
   description: dynamic-description
   rules:
   - DynamicRule

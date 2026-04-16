@@ -39,6 +39,29 @@
           - !type:MaxRuleOccurenceCondition
           - !type:PlayerCountCondition
             min: 20
+        # Imp start
+        - id: Wizard
+          weight: 5
+          conditions:
+          - !type:HasBudgetCondition
+          - !type:MaxRuleOccurenceCondition
+          - !type:PlayerCountCondition
+            min: 10
+        - id: Changeling
+          weight: 30
+          conditions:
+          - !type:HasBudgetCondition
+          - !type:MaxRuleOccurenceCondition
+          - !type:PlayerCountCondition
+            min: 20
+        - id: Heretic
+          weight: 30
+          conditions:
+          - !type:HasBudgetCondition
+          - !type:MaxRuleOccurenceCondition
+          - !type:PlayerCountCondition
+            min: 20
+        # Imp end
       # Roundstart Minor Rules
       - !type:GroupSelector
         conditions:
@@ -57,6 +80,15 @@
           - !type:MaxRuleOccurenceCondition
           - !type:PlayerCountCondition
             min: 30
+      # Imp start
+        - id: SubWizard # Wizard main + Wizard sub when...
+          prob: 0.05
+          conditions:
+          - !type:HasBudgetCondition
+          - !type:MaxRuleOccurenceCondition
+          - !type:PlayerCountCondition
+            min: 10
+      # Imp end
       # Midround rules
       - !type:GroupSelector
         conditions:
@@ -64,28 +96,28 @@
           min: 300 # minimum 5 minutes
         children:
         - id: SleeperAgents
-          weight: 15
+          weight: 8 # Imp
           conditions:
           - !type:HasBudgetCondition
           - !type:MaxRuleOccurenceCondition
           - !type:RoundDurationCondition
             min: 900 # 15 minutes
         - id: DragonSpawn
-          weight: 15
+          weight: 6.5 # Imp
           conditions:
           - !type:HasBudgetCondition
           - !type:MaxRuleOccurenceCondition
           - !type:RoundDurationCondition
             min: 900 # 15 minutes
         - id: NinjaSpawn
-          weight: 20
+          weight: 1 # Imp
           conditions:
           - !type:HasBudgetCondition
           - !type:MaxRuleOccurenceCondition
           - !type:RoundDurationCondition
             min: 900 # 15 minutes
         - id: ParadoxCloneSpawn
-          weight: 25
+          weight: 5
           conditions:
           - !type:HasBudgetCondition
           - !type:MaxRuleOccurenceCondition
@@ -93,7 +125,7 @@
           - !type:RoundDurationCondition
             min: 600 # 10 minutes
         - id: ZombieOutbreak
-          weight: 2.5
+          weight: 1 # Imp
           conditions:
           - !type:HasBudgetCondition
           - !type:MaxRuleOccurenceCondition
@@ -119,3 +151,68 @@
             min: 30
           - !type:RoundDurationCondition
             min: 1800 # 30 minutes
+        # Imp start
+        - id: RevenantSpawn
+          weight: 7.5
+          conditions:
+          - !type:HasBudgetCondition
+          - !type:MaxRuleOccurenceCondition
+          - !type:PlayerCountCondition
+            min: 20
+          - !type:RoundDurationCondition
+            min: 1800 # 30 minutes
+        - id: KingRatMigration
+          weight: 6
+          conditions:
+          - !type:HasBudgetCondition
+          - !type:MaxRuleOccurenceCondition
+          - !type:PlayerCountCondition
+            min: 30
+          - !type:RoundDurationCondition
+            min: 900 # 15 minutes
+        - id: ChangelingAwakening
+          weight: 2
+          conditions:
+          - !type:HasBudgetCondition
+          - !type:MaxRuleOccurenceCondition
+          - !type:PlayerCountCondition
+            min: 30
+          - !type:RoundDurationCondition
+            min: 1800 # 30 minutes
+        - id: BountyHunterSpawn
+          weight: 5
+          conditions:
+          - !type:HasBudgetCondition
+          - !type:MaxRuleOccurenceCondition
+          - !type:PlayerCountCondition
+            min: 15
+          - !type:RoundDurationCondition
+            min: 1200 # 20 minutes
+        - id: ReplicatorSpawn
+          weight: 5.5
+          conditions:
+          - !type:HasBudgetCondition
+          - !type:MaxRuleOccurenceCondition
+          - !type:PlayerCountCondition
+            min: 30
+          - !type:RoundDurationCondition
+            min: 1200 # 20 minutes
+        - id: VRexEvent
+          weight: 3.5
+          conditions:
+          - !type:HasBudgetCondition
+          - !type:MaxRuleOccurenceCondition
+          - !type:PlayerCountCondition
+            min: 40
+          - !type:RoundDurationCondition
+            min: 1200 # 20 minutes
+        - id: EeepEvent
+          weight: 3.5
+          conditions:
+          - !type:HasBudgetCondition
+          - !type:MaxRuleOccurenceCondition
+          - !type:PlayerCountCondition
+            min: 30
+          - !type:RoundDurationCondition
+            min: 1500 # 25 minutes
+        # Imp End

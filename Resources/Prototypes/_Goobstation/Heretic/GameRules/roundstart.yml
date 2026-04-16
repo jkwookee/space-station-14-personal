@@ -27,3 +27,5 @@
       mindRoles:
       - MindRoleHeretic
       startingGear: HereticGear # see Roles/Antags/heretic.yml
+  - type: DynamicRuleCost # Imp
+    cost: 100 # Imp
