@@ -17,22 +17,10 @@ public sealed partial class SupermatterComponent : Component
     #region Base
 
     /// <summary>
-    /// The current status of the singularity, used for alert sounds and the monitoring console
+    /// The current status of the supermatter, used for alert sounds and the monitoring console
     /// </summary>
     [DataField]
     public SupermatterStatusType Status = SupermatterStatusType.Inactive;
-
-    /// <summary>
-    /// The supermatter's external gas mixture on the tile
-    /// </summary>
-    [DataField]
-    public GasMixture? GasMixture;
-
-    /// <summary>
-    /// The supermatter's internal gas storage
-    /// </summary>
-    [DataField]
-    public GasMixture? GasStorage;
 
     [DataField]
     public Color LightColorNormal = Color.FromHex("#ffe000");
@@ -43,64 +31,8 @@ public sealed partial class SupermatterComponent : Component
     [DataField]
     public float HallucinationRange = 6f;
 
-    #endregion
-
-    #region Prototypes
-
-    [DataField]
-    public EntProtoId[] LightningPrototypes =
-    {
-        "SupermatterLightning",
-        "SupermatterLightningCharged",
-        "SupermatterLightningSupercharged"
-    };
-
-    [DataField]
-    public EntProtoId SliverPrototype = "SupermatterSliver";
-
-    [DataField]
-    public EntProtoId SingularitySpawnPrototype = "Singularity";
-
-    [DataField]
-    public EntProtoId TeslaSpawnPrototype = "TeslaEnergyBall";
-
-    // one day...
-    // [DataField]
-    // public EntProtoId KudzuSpawnPrototype = "SupermatterKudzu";
-
-    [DataField]
-    public EntProtoId AnomalyBluespaceSpawnPrototype = "AnomalyBluespace";
-
-    [DataField]
-    public EntProtoId AnomalyGravitySpawnPrototype = "AnomalyGravity";
-
-    [DataField]
-    public EntProtoId AnomalyPyroSpawnPrototype = "AnomalyPyroclastic";
-
-    [DataField]
-    public EntProtoId CollisionResultPrototype = "Ash";
-
-    [DataField, ViewVariables(VVAccess.ReadOnly)]
-    public EntProtoId DelamEffectsPrototype = "SupermatterDelamEffects";
-
-    [DataField, ViewVariables(VVAccess.ReadOnly)]
-    public EntProtoId DelamGamerulePrototype = "SupermatterDelamEventScheduler";
-
-    [DataField]
-    public HashSet<ProtoId<SharedMoodPrototype>> SharedMoodScrambleTargets = ["Thaven"];
-
-    #endregion
-
-    #region Sounds
-
-    [DataField]
-    public SoundSpecifier DustSound = new SoundPathSpecifier("/Audio/_EE/Supermatter/supermatter.ogg");
-
     [DataField]
     public SoundSpecifier DistortSound = new SoundPathSpecifier("/Audio/_EE/Supermatter/charge.ogg");
-
-    [DataField]
-    public SoundSpecifier PullSound = new SoundPathSpecifier("/Audio/_EE/Supermatter/marauder.ogg");
 
     [DataField]
     public SoundSpecifier CalmLoopSound = new SoundPathSpecifier("/Audio/_EE/Supermatter/calm.ogg");
@@ -141,146 +73,11 @@ public sealed partial class SupermatterComponent : Component
     [DataField]
     public SoundSpecifier GiveParacusiaSound = new SoundPathSpecifier("/Audio/Ambience/ambireebe3.ogg");
 
-    #endregion
-
-    #region Processing
-
-    /// <summary>
-    /// The internal energy of the supermatter
-    /// </summary>
-    [DataField]
-    public float Power;
-
-    /// <summary>
-    /// Takes the energy that supermatter collision generates and slowly turns it into actual power
-    /// </summary>
-    [DataField]
-    public float MatterPower;
-
-    /// <summary>
-    /// Affects the amount of oxygen and plasma that is released during supermatter reactions, as well as the heat generated
-    /// </summary>
-    [DataField]
-    public float HeatModifier;
-
-    /// <summary>
-    /// The percentage of the gas on the supermatter's tile that is absorbed each atmos tick.
-    /// </summary>
-    [DataField]
-    public float GasEfficiency = 0.15f;
-
-    /// <summary>
-    /// Uses <see cref="PowerlossDynamicScaling"/> and <see cref="GasStorage"/> to lessen the effects of our powerloss functions
-    /// </summary>
-    [DataField]
-    public float PowerlossInhibitor = 1;
-
-    /// <summary>
-    /// Based on CO2 percentage, this slowly moves between 0 and 1.
-    /// We use it to calculate <see cref="PowerlossInhibitor"/>.
-    /// </summary>
-    [DataField]
-    public float PowerlossDynamicScaling;
-
-    /// <summary>
-    /// Affects the amount of damage and minimum point at which the SM takes heat damage
-    /// </summary>
-    [DataField]
-    public float DynamicHeatResistance = 1;
-
-    /// <summary>
-    /// More moles of gases are harder to heat than fewer, so let's scale heat damage around them
-    /// </summary>
-    [DataField]
-    public float MoleHeatPenaltyThreshold;
-
     /// <summary>
     /// Modifier to damage taken during supermatter reactions, soothing the supermatter when a psychologist is nearby
     /// </summary>
     [DataField]
     public float PsyCoefficient;
-
-    /// <summary>
-    /// The chance for supermatter lightning to strike random coordinates instead of an entity
-    /// </summary>
-    [DataField]
-    public float ZapHitCoordinatesChance = 0.75f;
-
-    /// <summary>
-    /// The lifetime of a supermatter-spawned anomaly.
-    /// </summary>
-    [DataField]
-    public float AnomalyLifetime = 60f;
-
-    /// <summary>
-    /// The minimum distance from the supermatter that anomalies will spawn at
-    /// </summary>
-    [DataField]
-    public float AnomalySpawnMinRange = 5f;
-
-    /// <summary>
-    /// The maximum distance from the supermatter that anomalies will spawn at
-    /// </summary>
-    [DataField]
-    public float AnomalySpawnMaxRange = 10f;
-
-    /// <summary>
-    /// The chance for a bluespace anomaly to spawn when power or damage is high
-    /// </summary>
-    [DataField]
-    public float AnomalyBluespaceChance = 150f;
-
-    /// <summary>
-    /// The chance for a gravity anomaly to spawn when power or damage is high, and the severe power penalty threshold is exceeded
-    /// </summary>
-    [DataField]
-    public float AnomalyGravityChanceSevere = 150f;
-
-    /// <summary>
-    /// The chance for a gravity anomaly to spawn when power or damage is high
-    /// </summary>
-    [DataField]
-    public float AnomalyGravityChance = 750f;
-
-    /// <summary>
-    /// The chance for a pyroclastic anomaly to spawn when power or damage is high, and the severe power penalty threshold is exceeded
-    /// </summary>
-    [DataField]
-    public float AnomalyPyroChanceSevere = 375f;
-
-    /// <summary>
-    /// The chance for a pyroclastic anomaly to spawn when power or damage is high, and the power penalty threshold is exceeded
-    /// </summary>
-    [DataField]
-    public float AnomalyPyroChance = 2500f;
-
-    #endregion
-
-    #region Timing
-
-    /// <summary>
-    /// We yell if over 50 damage every YellTimer Seconds
-    /// </summary>
-    [DataField]
-    public TimeSpan YellTimer;
-
-    /// <summary>
-    /// Last time the supermatter's damage was announced
-    /// </summary>
-    [DataField]
-    public TimeSpan YellLast;
-
-    /// <summary>
-    /// Time when the delamination will occur
-    /// </summary>
-    [DataField]
-    public TimeSpan DelamEndTime;
-
-    /// <summary>
-    /// How long it takes in seconds for the supermatter to delaminate after reaching zero integrity
-    /// </summary>
-    [DataField]
-    public float DelamTimer = 30f;
 
     /// <summary>
     /// Last time a supermatter accent sound was triggered
@@ -293,118 +90,6 @@ public sealed partial class SupermatterComponent : Component
     /// </summary>
     [DataField]
     public float AccentMinCooldown = 2f;
-
-    [DataField]
-    public TimeSpan ZapLast;
-
-    #endregion
-
-    #region Damage
-
-    /// <summary>
-    /// The chance for lights across the station to flicker on a delamination
-    /// </summary>
-    [DataField]
-    public float LightFlickerChance = 0.33f;
-
-    /// <summary>
-    /// The amount of damage taken
-    /// </summary>
-    [DataField]
-    public float Damage = 0f;
-
-    /// <summary>
-    /// The damage from before this cycle.
-    /// Used to limit the damage we can take each cycle, and for safe alert.
-    /// </summary>
-    [DataField]
-    public float DamageArchived = 0f;
-
-    /// <summary>
-    /// Is multiplied by ExplosionPoint to cap evironmental damage per cycle
-    /// </summary>
-    [DataField]
-    public float DamageHardcap = 0.002f;
-
-    /// <summary>
-    /// Environmental damage is scaled by this
-    /// </summary>
-    [DataField]
-    public float DamageIncreaseMultiplier = 0.25f;
-
-    /// <summary>
-    /// Max space damage the SM will take per cycle
-    /// </summary>
-    [DataField]
-    public float MaxSpaceExposureDamage = 2;
-
-    /// <summary>
-    /// The point at which we should start sending radio messages about the damage.
-    /// </summary>
-    [DataField]
-    public float DamageWarningThreshold = 50;
-
-    /// <summary>
-    /// The point at which we start sending station announcements about the damage.
-    /// </summary>
-    [DataField]
-    public float DamageEmergencyThreshold = 500;
-
-    /// <summary>
-    /// The point at which the SM begins shooting lightning.
-    /// </summary>
-    [DataField]
-    public int DamagePenaltyPoint = 550;
-
-    /// <summary>
-    /// The point at which the SM begins delaminating.
-    /// </summary>
-    [DataField]
-    public int DamageDelaminationPoint = 900;
-
-    /// <summary>
-    /// The point at which the SM begins showing warning signs.
-    /// </summary>
-    [DataField]
-    public int DamageDelamAlertPoint = 300;
-
-    [DataField]
-    public bool Delamming;
-
-    [DataField]
-    public DelamType PreferredDelamType = DelamType.Explosion;
-
-    #endregion
-
-    #region Announcements
-
-    [DataField]
-    public bool DelamAnnounced;
-
-    /// <summary>
-    /// The radio channel for supermatter alerts
-    /// </summary>
-    [DataField]
-    public bool SuppressAnnouncements = false;
-
-
-    /// <summary>
-    /// The radio channel for supermatter alerts
-    /// </summary>
-    [DataField]
-    public ProtoId<RadioChannelPrototype> Channel = "Engineering";
-
-    /// <summary>
-    /// The common radio channel for severe supermatter alerts
-    /// </summary>
-    [DataField]
-    public ProtoId<RadioChannelPrototype> ChannelGlobal = "Common";
-
-    /// <summary>
-    /// Used for logging if the supermatter has been powered
-    /// </summary>
-    [DataField]
-    public bool HasBeenPowered;
 
     #endregion
 
@@ -454,14 +139,6 @@ public sealed partial class SupermatterComponent : Component
     public float GasHeatModifier;
 
     #endregion
-}
-
-public enum DelamType : int
-{
-    Explosion = 0,
-    Singulo = 1,
-    Tesla = 2,
-    Cascade = 3
 }
 
 [Serializable, NetSerializable]
@@ -570,11 +247,6 @@ public enum SupermatterVisuals : byte
 {
     Crystal,
     Psy
-}
-
-[Serializable, NetSerializable]
-public sealed partial class SupermatterDoAfterEvent : SimpleDoAfterEvent
-{
 }
 
 [Serializable, NetSerializable]

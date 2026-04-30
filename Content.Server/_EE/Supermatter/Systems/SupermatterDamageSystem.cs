@@ -68,5 +68,136 @@ namespace Content.Server._EE.Supermatter.Systems;
 
 public sealed partial class SupermatterDamageSystem : EntitySystem
 {
+    [Dependency] private readonly AppearanceSystem _appearance = default!;
+    [Dependency] private readonly AtmosphereSystem _atmosphere = default!;
+    [Dependency] private readonly ChatSystem _chat = default!;
+    [Dependency] private readonly EntityLookupSystem _entityLookup = default!;
+    [Dependency] private readonly ExamineSystem _examine = default!;
+    [Dependency] private readonly ExplosionSystem _explosion = default!;
+    [Dependency] private readonly GameTicker _gameTicker = default!;
+    [Dependency] private readonly GhostSystem _ghost = default!;
+    [Dependency] private readonly GravityWellSystem _gravityWell = default!;
+    [Dependency] private readonly IonStormSystem _ionStorm = default!;
+    [Dependency] private readonly LightningSystem _lightning = default!;
+    [Dependency] private readonly ParacusiaSystem _paracusia = default!;
+    [Dependency] private readonly PointLightSystem _light = default!;
+    [Dependency] private readonly PopupSystem _popup = default!;
+    [Dependency] private readonly RadioSystem _radio = default!;
+    [Dependency] private readonly StrangeMoodsSystem _moods = default!;
+    [Dependency] private readonly SharedAmbientSoundSystem _ambient = default!;
+    [Dependency] private readonly SharedAudioSystem _audio = default!;
+    [Dependency] private readonly SharedContainerSystem _container = default!;
+    [Dependency] private readonly SharedDeviceLinkSystem _link = default!;
+    [Dependency] private readonly SharedMapSystem _map = default!;
+    [Dependency] private readonly IAdminLogManager _adminLog = default!;
+    [Dependency] private readonly IChatManager _chatManager = default!;
+    [Dependency] private readonly IConfigurationManager _config = default!;
+    [Dependency] private readonly IGameTiming _timing = default!;
+    [Dependency] private readonly IPrototypeManager _proto = default!;
+    [Dependency] private readonly IRobustRandom _random = default!;
 
+    public override void Initialize()
+    {
+        base.Initialize();
+
+        SubscribeLocalEvent<SupermatterDamageComponent, ExaminedEvent>(OnExamine);
+
+        // May need to change to a non ref to pass info
+        SubscribeLocalEvent<SupermatterDamageComponent, SupermatterAtmosUpdatedEvent>(OnSupermatterAtmosUpdate);
+    }
+
+    public override void Update(float frameTime)
+    {
+        base.Update(frameTime);
+
+        var query = EntityManager.EntityQueryEnumerator<SupermatterComponent>();
+        while (query.MoveNext(out var uid, out var sm))
+            AnnounceCoreDamage(uid, sm);
+    }
+
+    private void OnExamine(Entity<SupermatterDamageComponent> ent, ref ExaminedEvent args)
+    {
+        // For ghosts: alive players can use the console
+        if (HasComp<GhostComponent>(args.Examiner) && args.IsInDetailsRange)
+            args.PushMarkup(Loc.GetString("supermatter-examine-integrity", ("integrity", GetIntegrity(ent.Comp).ToString("0.00"))));
+    }
+
+    private void OnSupermatterAtmosUpdate(Entity<SupermatterDamageComponent> ent, ref SupermatterAtmosUpdatedEvent args)
+    {
+        var comp = ent.Comp;
+
+        var xform = Transform(ent);
+        var gridId = xform.GridUid;
+
+        comp.DamageArchived = comp.Damage;
+
+        // We're in space or there is no gas to process
+        if (!xform.GridUid.HasValue || MathHelper.CloseTo(args.GasMixture.TotalMoles, 0f, 0.0005f)) //#IMP change from == 0f to MathHelper.CloseTo(sm.GasMixture.TotalMoles, 0f, 0.0005f)
+        {
+            comp.Damage += Math.Max(args.Power / 1000 * comp.DamageIncreaseMultiplier, 0.1f);
+            return;
+        }
+
+        var totalDamage = 0f;
+
+        var tempThreshold = Atmospherics.T0C + _config.GetCVar(EECCVars.SupermatterHeatPenaltyThreshold);
+
+        // Temperature start to have a positive effect on damage after 350
+        var tempDamage = Math.Max(Math.Clamp(args.GasStorage.TotalMoles / 200f, .5f, 1f) * args.GasMixture.Temperature - tempThreshold * args.DynamicHeatResistance, 0f) *
+        args.MoleHeatPenaltyThreshold / 150f * comp.DamageIncreaseMultiplier;
+        totalDamage += tempDamage;
+
+        // Power only starts affecting damage when it is above 5000
+        var powerDamage = Math.Max(args.Power - _config.GetCVar(EECCVars.SupermatterPowerPenaltyThreshold), 0f) / 500f * comp.DamageIncreaseMultiplier;
+        totalDamage += powerDamage;
+
+        // Mol count only starts affecting damage when it is above 1800
+        var moleDamage = Math.Max(args.GasStorage.TotalMoles - _config.GetCVar(EECCVars.SupermatterMolePenaltyThreshold), 0f) / 80 * comp.DamageIncreaseMultiplier;
+        totalDamage += moleDamage;
+
+        // Healing damage
+        if (args.GasStorage.TotalMoles < _config.GetCVar(EECCVars.SupermatterMolePenaltyThreshold))
+        {
+            // Only has a net positive effect when the temp is below 313.15, heals up to 2 damage. Psychologists increase this temp min by up to 45
+            var heatHealing = Math.Min(args.GasMixture.Temperature - (tempThreshold + 45f * sm.PsyCoefficient), 0f) / 150f;
+            totalDamage += heatHealing;
+        }
+
+        // Check for space tiles next to SM
+        if (TryComp<MapGridComponent>(gridId, out var grid))
+        {
+            var localpos = xform.Coordinates.Position;
+            var tilerefs = _map.GetLocalTilesIntersecting(
+                gridId.Value,
+                grid,
+                new Box2(localpos + new Vector2(-1, -1), localpos + new Vector2(1, 1)),
+                true);
+
+            // We should have 9 tiles in total, any less means there's a space tile nearby
+            if (tilerefs.Count() < 9)
+            {
+                var factor = GetIntegrity(comp) switch
+                {
+                    < 10 => 0.0005f,
+                    < 25 => 0.0009f,
+                    < 45 => 0.005f,
+                    < 75 => 0.002f,
+                    _ => 0f
+                };
+
+                totalDamage += Math.Clamp(args.Power * factor * comp.DamageIncreaseMultiplier, 0, comp.MaxDamage);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Returns the integrity rounded to hundreds, e.g. 100.00%
+    /// </summary>
+    public static float GetIntegrity(SupermatterDamageComponent damage)
+    {
+        var integrity = damage.Damage / damage.DamageDelaminationPoint;
+        integrity = (float)Math.Round(100 - integrity * 100, 2);
+        integrity = integrity < 0 ? 0 : integrity;
+        return integrity;
+    }
 }

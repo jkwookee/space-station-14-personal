@@ -7,6 +7,12 @@ namespace Content.Shared._EE.Supermatter.Components;
 public sealed partial class SupermatterAtmosComponent : Component
 {
     /// <summary>
+    /// Used for logging if the supermatter has been powered
+    /// </summary>
+    [DataField]
+    public bool HasBeenPowered;
+
+    /// <summary>
     /// The supermatter's external gas mixture on the tile
     /// </summary>
     [DataField]

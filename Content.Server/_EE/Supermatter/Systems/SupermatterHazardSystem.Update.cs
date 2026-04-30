@@ -84,7 +84,7 @@ public sealed partial class SupermatterHazardSystem
         foreach (var tileref in tiles)
         {
             var anomaly = Spawn(_random.Pick(anomalies), _map.ToCenterCoordinates(tileref, grid));
-            EnsureComp<TimedDespawnComponent>(anomaly).Lifetime = sm.AnomalyLifetime;
+            EnsureComp<TimedDespawnComponent>(anomaly).Lifetime = comp.AnomalyLifetime;
         }
     }
 

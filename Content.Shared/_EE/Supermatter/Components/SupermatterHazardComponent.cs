@@ -92,4 +92,13 @@ public sealed partial class SupermatterHazardComponent : Component
     /// </summary>
     [DataField]
     public float AnomalyPyroChance = 2500f;
+
+    [DataField]
+    public TimeSpan ZapLast;
+
+    /// <summary>
+    /// The point at which the SM begins shooting lightning.
+    /// </summary>
+    [DataField]
+    public int DamagePenaltyPoint = 550;
 }

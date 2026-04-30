@@ -165,27 +165,27 @@ public sealed partial class SupermatterCollisionSystem : EntitySystem
 
     private void ApplySupermatterPower(Entity<SupermatterCollisionComponent> ent, EntityUid matter, float power = 0f)
     {
-        if (!TryComp<SupermatterComponent>(ent, out var sm))
+        if (!TryComp<SupermatterAtmosComponent>(ent, out var atmos))
             return;
 
-        if (!sm.HasBeenPowered)
-            LogFirstPower((ent, sm), matter);
+        if (!atmos.HasBeenPowered)
+            LogFirstPower((ent, atmos), matter);
 
         if (TryComp<SupermatterFoodComponent>(matter, out var food))
-            sm.Power += food.Energy;
+            atmos.Power += food.Energy;
         else if (TryComp<ProjectileComponent>(matter, out var projectile))
-            sm.Power += (float)projectile.Damage.GetTotal();
+            atmos.Power += (float)projectile.Damage.GetTotal();
         else
-            sm.Power++;
+            atmos.Power++;
 
         if (TryComp<PhysicsComponent>(matter, out var physics))
             power += physics.Mass;
 
         power += HasComp<MobStateComponent>(matter) ? 200 : 0;
-        sm.MatterPower += power;
+        atmos.MatterPower += power;
     }
 
-    private void LogFirstPower(Entity<SupermatterComponent> ent, EntityUid matter)
+    private void LogFirstPower(Entity<SupermatterAtmosComponent> ent, EntityUid matter)
     {
         _adminLog.Add(LogType.Unknown, LogImpact.Extreme, $"{EntityManager.ToPrettyString(ent):ent} was powered for the first time by {EntityManager.ToPrettyString(matter):matter} at {Transform(ent).Coordinates:coordinates}");
         _chatManager.SendAdminAlert($"{EntityManager.ToPrettyString(ent):ent} was powered for the first time by {EntityManager.ToPrettyString(matter):matter}");

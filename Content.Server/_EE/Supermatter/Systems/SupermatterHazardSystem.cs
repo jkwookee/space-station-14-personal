@@ -69,24 +69,19 @@ public sealed partial class SupermatterHazardSystem : EntitySystem
         SubscribeLocalEvent<SupermatterHazardComponent, GravPulseEvent>(OnGravPulse);
     }
 
-    public override void Update(float frameTime)
-    {
-        base.Update(frameTime);
-
-
-    }
+    // public override void Update(float frameTime)
+    // {
+    //     base.Update(frameTime);
+    // }
 
     private void OnSupermatterAtmosUpdate(Entity<SupermatterHazardComponent> ent, ref SupermatterAtmosUpdatedEvent args)
     {
         var comp = ent.Comp;
         comp.HazardPower = args.Power;
 
-
-        if (!TryComp<SupermatterComponent>(ent, out var sm))
-            return;
-
         // TODO: move over to timespan and update
-        if (comp.HazardPower > _config.GetCVar(EECCVars.SupermatterPowerPenaltyThreshold) || sm.Damage > sm.DamagePenaltyPoint)
+        if (comp.HazardPower > _config.GetCVar(EECCVars.SupermatterPowerPenaltyThreshold) ||
+            TryComp<SupermatterDamageComponent>(ent, out var damage) && damage.Damage > comp.DamagePenaltyPoint)
         {
             SupermatterZap(ent);
             GenerateAnomalies(ent);

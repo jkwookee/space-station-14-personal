@@ -29,8 +29,16 @@ public sealed partial class SupermatterAtmosSystem : EntitySystem
         var comp = ent.Comp;
         var mix = _atmosphere.GetContainingMixture(ent.Owner, true, true);
 
+        var ev = new SupermatterAtmosUpdatedEvent()
+        {
+            Power = comp.Power,
+        };
+
         if (mix is not { })
+        {
+            RaiseLocalEvent(ent.Owner, ref ev);
             return;
+        }
 
         // Variable mix was copied as to not interfere with other calculations when gasReleased is merged
         comp.GasMixture = mix.Clone();
@@ -86,20 +94,17 @@ public sealed partial class SupermatterAtmosSystem : EntitySystem
         comp.PowerLoss = Math.Min(powerReduction * comp.PowerlossInhibitor, comp.Power * 0.83f * comp.PowerlossInhibitor);
         comp.Power = Math.Max(comp.Power - comp.PowerLoss, 0f);
 
-        if (sm is { })
-        {
-            // Log the first powering of the supermatter
-            if (comp.Power > 0 && !sm.HasBeenPowered)
-                LogFirstPower((ent, sm), comp.GasMixture);
+        // Log the first powering of the supermatter
+        if (comp.Power > 0 && !comp.HasBeenPowered)
+            LogFirstPower((ent, comp), comp.GasMixture);
 
-            sm.Power = comp.Power;
-        }
-
-        var ev = new SupermatterAtmosUpdatedEvent()
+        ev = new SupermatterAtmosUpdatedEvent()
         {
+            GasMixture = comp.GasMixture,
+            GasStorage = comp.GasStorage,
+            GasComposition = comp.GasComposition,
             Power = comp.Power,
             PowerRatio = powerRatio,
-            GasComposition = comp.GasComposition,
             GasHeatModifier = gasHeatModifier,
             HeatModifier = comp.HeatModifier,
             DynamicHeatResistance = dynamicHeatResistance,
@@ -154,7 +159,7 @@ public sealed partial class SupermatterAtmosSystem : EntitySystem
         comp.Power = Math.Max(comp.GasStorage.Temperature * tempFactor / Atmospherics.T0C * powerRatio + comp.Power, 0);
     }
 
-    private void LogFirstPower(Entity<SupermatterComponent> ent, GasMixture gas)
+    private void LogFirstPower(Entity<SupermatterAtmosComponent> ent, GasMixture gas)
     {
         _adminLog.Add(LogType.Unknown, LogImpact.Extreme, $"{EntityManager.ToPrettyString(ent):ent} was powered for the first time by gas mixture at {Transform(ent).Coordinates:coordinates}");
         _chatManager.SendAdminAlert($"{EntityManager.ToPrettyString(ent):ent} was powered for the first time by gas mixture");
