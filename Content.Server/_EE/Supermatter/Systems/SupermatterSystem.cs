@@ -71,7 +71,6 @@ public sealed partial class SupermatterSystem : EntitySystem
         SubscribeLocalEvent<SupermatterComponent, AtmosDeviceUpdateEvent>(OnSupermatterUpdated);
 
         SubscribeLocalEvent<SupermatterComponent, ExaminedEvent>(OnExamine);
-        SubscribeLocalEvent<SupermatterComponent, GravPulseEvent>(OnGravPulse);
     }
 
     public override void Update(float frameTime)
@@ -103,7 +102,6 @@ public sealed partial class SupermatterSystem : EntitySystem
 
     public void OnSupermatterUpdated(EntityUid uid, SupermatterComponent sm, AtmosDeviceUpdateEvent args)
     {
-        ProcessAtmos(uid, sm, args.dt);
         HandleDamage(uid, sm);
 
         if (sm.Damage >= sm.DamageDelaminationPoint || sm.Delamming)
@@ -114,24 +112,6 @@ public sealed partial class SupermatterSystem : EntitySystem
         HandleStatus(uid, sm);
         HandleSoundLoop(uid, sm);
         HandleAccent(uid, sm);
-
-        if (sm.Power > _config.GetCVar(EECCVars.SupermatterPowerPenaltyThreshold) || sm.Damage > sm.DamagePenaltyPoint)
-        {
-            SupermatterZap(uid, sm);
-            GenerateAnomalies(uid, sm);
-        }
-    }
-
-    private void OnGravPulse(Entity<SupermatterComponent> ent, ref GravPulseEvent args)
-    {
-        if (!TryComp<GravityWellComponent>(ent, out var gravityWell))
-            return;
-
-        var nextPulse = 0.5f * _random.NextFloat(1f, 30f);
-        _gravityWell.SetPulsePeriod(ent, TimeSpan.FromSeconds(nextPulse), gravityWell);
-
-        var audioParams = AudioParams.Default.WithMaxDistance(gravityWell.MaxRange);
-        _audio.PlayPvs(ent.Comp.PullSound, ent, audioParams);
     }
 
     private void OnExamine(EntityUid uid, SupermatterComponent sm, ref ExaminedEvent args)

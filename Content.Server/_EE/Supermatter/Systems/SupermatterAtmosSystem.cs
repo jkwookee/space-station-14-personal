@@ -55,20 +55,20 @@ public sealed partial class SupermatterAtmosSystem : EntitySystem
 
         // TODO: make all of these into one function that sends these values through a event probably and remove them being a component, let the things that need it have it as a component so they can independently work
 
-        // comp.TransmissionBonus = SupermatterGasData.GetTransmitModifiers(comp.GasComposition);
-        // var h2OBonus = 1 - comp.GasComposition.GetMoles(Gas.WaterVapor) * 0.25f;
-        // comp.TransmissionBonus *= h2OBonus;
+        var transmissionBonus = SupermatterGasData.GetTransmitModifiers(comp.GasComposition);
+        var h2OBonus = 1 - comp.GasComposition.GetMoles(Gas.WaterVapor) * 0.25f;
+        transmissionBonus *= h2OBonus;
 
-        // // Affects plasma, o2 and heat output.
-        // comp.GasHeatModifier = SupermatterGasData.GetHeatPenalties(comp.GasComposition);
-        // comp.HeatModifier = Math.Max(comp.GasHeatModifier, 0.5f);
+        // Affects plasma, o2 and heat output.
+        var gasHeatModifier = SupermatterGasData.GetHeatPenalties(comp.GasComposition);
+        comp.HeatModifier = Math.Max(gasHeatModifier, 0.5f);
 
-        // // Affects the damage heat does to the crystal
-        // var heatResistance = SupermatterGasData.GetHeatResistances(comp.GasComposition);
-        // comp.DynamicHeatResistance = Math.Max(heatResistance, 1);
+        // Affects the damage heat does to the crystal
+        var heatResistance = SupermatterGasData.GetHeatResistances(comp.GasComposition);
+        var dynamicHeatResistance = Math.Max(heatResistance, 1);
 
-        // // More moles of gases are harder to heat than fewer, so let's scale heat damage around them
-        // comp.MoleHeatPenaltyThreshold = (float)Math.Max(comp.GasStorage.TotalMoles / _config.GetCVar(EECCVars.SupermatterMoleHeatPenalty), 0.25);
+        // More moles of gases are harder to heat than fewer, so let's scale heat damage around them
+        var moleHeatPenaltyThreshold = (float)Math.Max(comp.GasStorage.TotalMoles / _config.GetCVar(EECCVars.SupermatterMoleHeatPenalty), 0.25);
 
         var psyCoefficient = 0f;
         if (TryComp<SupermatterComponent>(ent, out var sm))
@@ -95,7 +95,17 @@ public sealed partial class SupermatterAtmosSystem : EntitySystem
             sm.Power = comp.Power;
         }
 
-        var ev = new SupermatterAtmosUpdatedEvent();
+        var ev = new SupermatterAtmosUpdatedEvent()
+        {
+            Power = comp.Power,
+            PowerRatio = powerRatio,
+            GasComposition = comp.GasComposition,
+            GasHeatModifier = gasHeatModifier,
+            HeatModifier = comp.HeatModifier,
+            DynamicHeatResistance = dynamicHeatResistance,
+            MoleHeatPenaltyThreshold = moleHeatPenaltyThreshold,
+            TransmissionBonus = transmissionBonus
+        };
         RaiseLocalEvent(ent.Owner, ref ev);
     }
 

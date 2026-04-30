@@ -1,34 +1,12 @@
 using System.Linq;
 using System.Numerics;
-using System.Text;
-using Content.Server.Chat.Systems;
-using Content.Server.Singularity.Components;
-using Content.Server.StationEvents.Events;
 using Content.Shared._EE.CCVar;
 using Content.Shared._EE.Supermatter.Components;
-using Content.Shared._Impstation.StrangeMoods;
-using Content.Shared.Atmos;
-using Content.Shared.Audio;
-using Content.Shared.Chat;
-using Content.Shared.DeviceLinking;
-using Content.Shared.Eye.Blinding.Components;
-using Content.Shared.Light.Components;
-using Content.Shared.Mobs;
-using Content.Shared.Mobs.Components;
 using Content.Shared.Physics;
-using Content.Shared.Popups;
-using Content.Shared.Radiation.Components;
-using Content.Shared.Silicons.Laws.Components;
-using Content.Shared.Speech;
-using Content.Shared.Storage.Components;
-using Content.Shared.Traits.Assorted;
-using Robust.Server.GameObjects;
-using Robust.Shared.Audio;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
 using Robust.Shared.Physics;
 using Robust.Shared.Physics.Components;
-using Robust.Shared.Player;
 using Robust.Shared.Random;
 using Robust.Shared.Spawners;
 
@@ -39,64 +17,67 @@ public sealed partial class SupermatterHazardSystem
     /// <summary>
     /// Shoot lightning bolts depending on accumulated power.
     /// </summary>
-    private void SupermatterZap(EntityUid uid, SupermatterComponent sm)
+    private void SupermatterZap(Entity<SupermatterHazardComponent> ent)
     {
+        var comp = ent.Comp;
+
         var zapPower = 0;
         var zapCount = 0;
-        var zapRange = Math.Clamp(sm.Power / 1000, 2, 7);
+        var zapRange = Math.Clamp(comp.HazardPower / 1000, 2, 7);
 
         if (_random.Prob(0.05f))
             zapCount += 1;
 
-        if (sm.Power >= _config.GetCVar(EECCVars.SupermatterPowerPenaltyThreshold))
+        if (comp.HazardPower >= _config.GetCVar(EECCVars.SupermatterPowerPenaltyThreshold))
             zapCount += 2;
 
-        if (sm.Power >= _config.GetCVar(EECCVars.SupermatterSeverePowerPenaltyThreshold))
+        if (comp.HazardPower >= _config.GetCVar(EECCVars.SupermatterSeverePowerPenaltyThreshold))
         {
             zapPower += 1;
             zapCount += 1;
         }
 
-        if (sm.Power >= _config.GetCVar(EECCVars.SupermatterCriticalPowerPenaltyThreshold))
+        if (comp.HazardPower >= _config.GetCVar(EECCVars.SupermatterCriticalPowerPenaltyThreshold))
         {
             zapPower += 1;
             zapCount += 1;
         }
 
         if (zapCount >= 1)
-            _lightning.ShootRandomLightnings(uid, zapRange, zapCount, sm.LightningPrototypes[zapPower], hitCoordsChance: sm.ZapHitCoordinatesChance, canExplode: false);
+            _lightning.ShootRandomLightnings(ent, zapRange, zapCount, comp.LightningPrototypes[zapPower], hitCoordsChance: comp.ZapHitCoordinatesChance, canExplode: false);
     }
 
     /// <summary>
     /// Generate temporary anomalies depending on accumulated power.
     /// </summary>
-    private void GenerateAnomalies(EntityUid uid, SupermatterComponent sm)
+    private void GenerateAnomalies(Entity<SupermatterHazardComponent> ent)
     {
-        var xform = Transform(uid);
+        var comp = ent.Comp;
+        var xform = Transform(ent);
         var anomalies = new List<string>();
 
         if (!TryComp<MapGridComponent>(xform.GridUid, out var grid))
             return;
 
         // Bluespace anomaly: ~1/150 chance
-        if (_random.Prob(1 / sm.AnomalyBluespaceChance))
-            anomalies.Add(sm.AnomalyBluespaceSpawnPrototype);
+        if (_random.Prob(1 / comp.AnomalyBluespaceChance))
+            anomalies.Add(comp.AnomalyBluespaceSpawnPrototype);
 
         // Gravity anomaly: ~1/150 chance above SeverePowerPenaltyThreshold, or ~1/750 chance otherwise
-        if (sm.Power > _config.GetCVar(EECCVars.SupermatterSeverePowerPenaltyThreshold) && _random.Prob(1 / sm.AnomalyGravityChanceSevere) ||
-            _random.Prob(1 / sm.AnomalyGravityChance))
-            anomalies.Add(sm.AnomalyGravitySpawnPrototype);
+        if (comp.HazardPower > _config.GetCVar(EECCVars.SupermatterSeverePowerPenaltyThreshold) && _random.Prob(1 / comp.AnomalyGravityChanceSevere) ||
+            _random.Prob(1 / comp.AnomalyGravityChance))
+            anomalies.Add(comp.AnomalyGravitySpawnPrototype);
 
         // Pyroclastic anomaly: ~1/375 chance above SeverePowerPenaltyThreshold, or ~1/2500 chance above PowerPenaltyThreshold
-        if (sm.Power > _config.GetCVar(EECCVars.SupermatterSeverePowerPenaltyThreshold) && _random.Prob(1 / sm.AnomalyPyroChanceSevere) ||
-            sm.Power > _config.GetCVar(EECCVars.SupermatterPowerPenaltyThreshold) && _random.Prob(1 / sm.AnomalyPyroChance))
-            anomalies.Add(sm.AnomalyPyroSpawnPrototype);
+        if (comp.HazardPower > _config.GetCVar(EECCVars.SupermatterSeverePowerPenaltyThreshold) && _random.Prob(1 / comp.AnomalyPyroChanceSevere) ||
+            comp.HazardPower > _config.GetCVar(EECCVars.SupermatterPowerPenaltyThreshold) && _random.Prob(1 / comp.AnomalyPyroChance))
+            anomalies.Add(comp.AnomalyPyroSpawnPrototype);
 
         var count = anomalies.Count;
         if (count == 0)
             return;
 
-        var tiles = GetSpawningPoints(uid, sm, count);
+        var tiles = GetSpawningPoints((ent, comp), count);
         if (tiles == null)
             return;
 
@@ -111,9 +92,10 @@ public sealed partial class SupermatterHazardSystem
     /// Gets random points around the supermatter.
     /// Most of this is from GetSpawningPoints() in SharedAnomalySystem
     /// </summary>
-    private List<TileRef>? GetSpawningPoints(EntityUid uid, SupermatterComponent sm, int amount)
+    private List<TileRef>? GetSpawningPoints(Entity<SupermatterHazardComponent> ent, int amount)
     {
-        var xform = Transform(uid);
+        var comp = ent.Comp;
+        var xform = Transform(ent);
 
         if (!TryComp<MapGridComponent>(xform.GridUid, out var grid))
             return null;
@@ -122,7 +104,7 @@ public sealed partial class SupermatterHazardSystem
         var tilerefs = _map.GetLocalTilesIntersecting(
             xform.GridUid.Value,
             grid,
-            new Box2(localpos + new Vector2(-sm.AnomalySpawnMaxRange, -sm.AnomalySpawnMaxRange), localpos + new Vector2(sm.AnomalySpawnMaxRange, sm.AnomalySpawnMaxRange)))
+            new Box2(localpos + new Vector2(-comp.AnomalySpawnMaxRange, -comp.AnomalySpawnMaxRange), localpos + new Vector2(comp.AnomalySpawnMaxRange, comp.AnomalySpawnMaxRange)))
             .ToList();
 
         if (tilerefs.Count == 0)
@@ -139,7 +121,7 @@ public sealed partial class SupermatterHazardSystem
             var distance = MathF.Sqrt(MathF.Pow(tileref.X - xform.LocalPosition.X, 2) + MathF.Pow(tileref.Y - xform.LocalPosition.Y, 2));
 
             // Cut outer & inner circle
-            if (distance > sm.AnomalySpawnMaxRange || distance < sm.AnomalySpawnMinRange)
+            if (distance > comp.AnomalySpawnMaxRange || distance < comp.AnomalySpawnMinRange)
             {
                 tilerefs.Remove(tileref);
                 continue;
@@ -147,9 +129,9 @@ public sealed partial class SupermatterHazardSystem
 
             var valid = true;
 
-            foreach (var ent in _map.GetAnchoredEntities(xform.GridUid.Value, grid, tileref.GridIndices))
+            foreach (var entity in _map.GetAnchoredEntities(xform.GridUid.Value, grid, tileref.GridIndices))
             {
-                if (!physQuery.TryGetComponent(ent, out var body))
+                if (!physQuery.TryGetComponent(entity, out var body))
                     continue;
 
                 if (body.BodyType != BodyType.Static ||

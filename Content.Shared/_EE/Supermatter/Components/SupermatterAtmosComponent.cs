@@ -24,17 +24,6 @@ public sealed partial class SupermatterAtmosComponent : Component
     [DataField]
     public GasMixture GasComposition;
 
-    [DataField]
-    public EntProtoId[] LightningPrototypes =
-    {
-        "SupermatterLightning",
-        "SupermatterLightningCharged",
-        "SupermatterLightningSupercharged"
-    };
-
-    [DataField]
-    public SoundSpecifier PullSound = new SoundPathSpecifier("/Audio/_EE/Supermatter/marauder.ogg");
-
     /// <summary>
     /// The internal energy of the supermatter
     /// </summary>
@@ -46,18 +35,6 @@ public sealed partial class SupermatterAtmosComponent : Component
     /// </summary>
     [DataField]
     public float MatterPower;
-
-    /// <summary>
-    /// Affects the amount of oxygen and plasma that is released during supermatter reactions, as well as the heat generated
-    /// </summary>
-    [DataField]
-    public float HeatModifier;
-
-    /// <summary>
-    /// The true value of <see cref="HeatModifier"/> without a lower bound, to be displayed on the monitoring console
-    /// </summary>
-    [DataField]
-    public float GasHeatModifier;
 
     /// <summary>
     /// The percentage of the gas on the supermatter's tile that is absorbed each atmos tick.
@@ -85,21 +62,8 @@ public sealed partial class SupermatterAtmosComponent : Component
     public float PowerLoss;
 
     /// <summary>
-    /// Affects the amount of damage and minimum point at which the SM takes heat damage
+    /// Affects the amount of oxygen and plasma that is released during supermatter reactions, as well as the heat generated
     /// </summary>
     [DataField]
-    public float DynamicHeatResistance = 1;
-
-    /// <summary>
-    /// More moles of gases are harder to heat than fewer, so let's scale heat damage around them
-    /// </summary>
-    [DataField]
-    public float MoleHeatPenaltyThreshold;
-
-    /// <summary>
-    /// Modifies rad output of the supermatter, increasing it the higher it is
-    /// </summary>
-    [DataField]
-    public float TransmissionBonus;
-
+    public float HeatModifier;
 }

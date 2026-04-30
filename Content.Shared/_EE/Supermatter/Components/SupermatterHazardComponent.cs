@@ -1,24 +1,31 @@
-using Content.Shared._Impstation.StrangeMoods;
-using Content.Shared.Atmos;
-using Content.Shared.DeviceLinking;
-using Content.Shared.DoAfter;
-using Content.Shared.Radio;
-using Content.Shared.Speech;
 using Robust.Shared.Audio;
 using Robust.Shared.GameStates;
 using Robust.Shared.Prototypes;
-using Robust.Shared.Serialization;
 
 namespace Content.Shared._EE.Supermatter.Components;
 
 [RegisterComponent, NetworkedComponent]
 public sealed partial class SupermatterHazardComponent : Component
 {
+    /// <summary>
+    /// The internal energy of the supermatter stored in hazard to allow independent attatchment
+    /// </summary>
+    [DataField]
+    public float HazardPower;
+
     [DataField]
     public Color LightColorNormal = Color.FromHex("#ffe000");
 
     [DataField]
     public Color LightColorDelam = Color.FromHex("#ff5555");
+
+    [DataField]
+    public EntProtoId[] LightningPrototypes =
+    {
+        "SupermatterLightning",
+        "SupermatterLightningCharged",
+        "SupermatterLightningSupercharged"
+    };
 
     [DataField]
     public EntProtoId AnomalyBluespaceSpawnPrototype = "AnomalyBluespace";
@@ -28,6 +35,9 @@ public sealed partial class SupermatterHazardComponent : Component
 
     [DataField]
     public EntProtoId AnomalyPyroSpawnPrototype = "AnomalyPyroclastic";
+
+    [DataField]
+    public SoundSpecifier PullSound = new SoundPathSpecifier("/Audio/_EE/Supermatter/marauder.ogg");
 
     /// <summary>
     /// The chance for supermatter lightning to strike random coordinates instead of an entity

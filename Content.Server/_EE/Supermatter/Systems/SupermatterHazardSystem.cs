@@ -1,7 +1,6 @@
 using Content.Server._Impstation.StrangeMoods;
 using Content.Server.Administration.Logs;
 using Content.Server.Atmos.EntitySystems;
-using Content.Server.Atmos.Piping.Components;
 using Content.Server.Chat.Managers;
 using Content.Server.Chat.Systems;
 using Content.Server.Examine;
@@ -17,11 +16,9 @@ using Content.Server.Singularity.EntitySystems;
 using Content.Server.Traits.Assorted;
 using Content.Shared._EE.CCVar;
 using Content.Shared._EE.Supermatter.Components;
-using Content.Shared.Atmos;
 using Content.Shared.Audio;
 using Content.Shared.DeviceLinking;
-using Content.Shared.Examine;
-using Content.Shared.Ghost;
+using Content.Shared.Radiation.Components;
 using Robust.Server.GameObjects;
 using Robust.Shared.Audio;
 using Robust.Shared.Audio.Systems;
@@ -30,39 +27,6 @@ using Robust.Shared.Containers;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
 using Robust.Shared.Timing;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using Content.Server.Chat.Systems;
-using Content.Server.Singularity.Components;
-using Content.Server.StationEvents.Events;
-using Content.Shared._EE.CCVar;
-using Content.Shared._EE.Supermatter.Components;
-using Content.Shared._Impstation.StrangeMoods;
-using Content.Shared.Atmos;
-using Content.Shared.Audio;
-using Content.Shared.Chat;
-using Content.Shared.DeviceLinking;
-using Content.Shared.Eye.Blinding.Components;
-using Content.Shared.Light.Components;
-using Content.Shared.Mobs;
-using Content.Shared.Mobs.Components;
-using Content.Shared.Physics;
-using Content.Shared.Popups;
-using Content.Shared.Radiation.Components;
-using Content.Shared.Silicons.Laws.Components;
-using Content.Shared.Speech;
-using Content.Shared.Storage.Components;
-using Content.Shared.Traits.Assorted;
-using Robust.Server.GameObjects;
-using Robust.Shared.Audio;
-using Robust.Shared.Map;
-using Robust.Shared.Map.Components;
-using Robust.Shared.Physics;
-using Robust.Shared.Physics.Components;
-using Robust.Shared.Player;
-using Robust.Shared.Random;
-using Robust.Shared.Spawners;
 
 namespace Content.Server._EE.Supermatter.Systems;
 
@@ -105,18 +69,36 @@ public sealed partial class SupermatterHazardSystem : EntitySystem
         SubscribeLocalEvent<SupermatterHazardComponent, GravPulseEvent>(OnGravPulse);
     }
 
+    public override void Update(float frameTime)
+    {
+        base.Update(frameTime);
+
+
+    }
+
     private void OnSupermatterAtmosUpdate(Entity<SupermatterHazardComponent> ent, ref SupermatterAtmosUpdatedEvent args)
     {
-        if (!TryComp<SupermatterAtmosComponent>(ent, out var sm))
+        var comp = ent.Comp;
+        comp.HazardPower = args.Power;
+
+
+        if (!TryComp<SupermatterComponent>(ent, out var sm))
             return;
+
+        // TODO: move over to timespan and update
+        if (comp.HazardPower > _config.GetCVar(EECCVars.SupermatterPowerPenaltyThreshold) || sm.Damage > sm.DamagePenaltyPoint)
+        {
+            SupermatterZap(ent);
+            GenerateAnomalies(ent);
+        }
 
         // Irradiate stuff
         if (TryComp<RadiationSourceComponent>(ent, out var rad))
         {
             rad.Intensity =
                 _config.GetCVar(EECCVars.SupermatterRadsBase) +
-                sm.Power
-                * Math.Max(0, 1f + transmissionBonus / 10f)
+                comp.HazardPower
+                * Math.Max(0, 1f + args.TransmissionBonus / 10f)
                 * 0.003f
                 * _config.GetCVar(EECCVars.SupermatterRadsModifier);
 
@@ -125,7 +107,7 @@ public sealed partial class SupermatterHazardSystem : EntitySystem
 
         // Adjust the gravity pull range
         if (TryComp<GravityWellComponent>(ent, out var gravityWell))
-            gravityWell.MaxRange = Math.Clamp(sm.Power / 850f, 0.5f, 3f);
+            gravityWell.MaxRange = Math.Clamp(comp.HazardPower / 850f, 0.5f, 3f);
     }
 
     private void OnGravPulse(Entity<SupermatterHazardComponent> ent, ref GravPulseEvent args)
