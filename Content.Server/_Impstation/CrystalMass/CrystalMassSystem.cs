@@ -40,9 +40,6 @@ public sealed class CrystalMassSystem : EntitySystem
 
         SubscribeLocalEvent<CrystalMassComponent, ComponentStartup>(SetupCrystalMass);
         SubscribeLocalEvent<CrystalMassComponent, SpreadNeighborsEvent>(OnCrystalSpread);
-
-        SubscribeLocalEvent<CrystalMassComponent, StepTriggerAttemptEvent>(OnStepTriggerAttempt);
-        SubscribeLocalEvent<CrystalMassComponent, StepTriggeredOnEvent>(OnStepTriggered);
     }
 
     public override void Update(float frameTime)
@@ -176,27 +173,5 @@ public sealed class CrystalMassSystem : EntitySystem
 
             EntityManager.QueueDeleteEntity(target);
         }
-    }
-
-    private void OnStepTriggered(Entity<CrystalMassComponent> ent, ref StepTriggeredOnEvent args)
-    {
-        if (HasComp<MobStateComponent>(args.Tripper)
-            || HasComp<ItemComponent>(args.Tripper))
-            _audio.PlayPvs(ent.Comp.DustSound, Transform(args.Tripper).Coordinates);
-
-        EntityManager.QueueDeleteEntity(args.Tripper);
-    }
-
-    private void OnStepTriggerAttempt(Entity<CrystalMassComponent> ent, ref StepTriggerAttemptEvent args)
-    {
-        if (HasComp<SupermatterImmuneComponent>(args.Tripper)
-            || HasComp<GodmodeComponent>(args.Tripper)
-            || HasComp<GhostComponent>(args.Tripper))
-        {
-            args.Cancelled = true;
-            return;
-        }
-
-        args.Continue = true;
     }
 }
