@@ -179,34 +179,28 @@ public sealed partial class SupermatterComponent : Component
     public float AnomalySpawnMaxRange = 10f;
 
     /// <summary>
-    /// The chance for a bluespace anomaly to spawn when power or damage is high
+    /// The chance for a anomaly to spawn while supermatter is active
     /// </summary>
     [DataField]
-    public float AnomalyBluespaceChance = 150f;
+    public float AnomalyNaturalChance = 6000f;
 
     /// <summary>
-    /// The chance for a gravity anomaly to spawn when power or damage is high, and the severe power penalty threshold is exceeded
+    /// The chance for a anomaly to spawn while supermatter has reached the damage penalty threshold
     /// </summary>
     [DataField]
-    public float AnomalyGravityChanceSevere = 150f;
+    public float AnomalyDamagePenaltyChance = 150f;
 
     /// <summary>
-    /// The chance for a gravity anomaly to spawn when power or damage is high
+    /// The chance for a anomaly to spawn while supermatter is active and the power penalty threshold is exceeded
     /// </summary>
     [DataField]
-    public float AnomalyGravityChance = 750f;
+    public float AnomalyPenaltyChance = 500f;
 
     /// <summary>
-    /// The chance for a pyroclastic anomaly to spawn when power or damage is high, and the severe power penalty threshold is exceeded
+    /// The chance for a anomaly to spawn while supermatter is active and the severe power penalty threshold is exceeded
     /// </summary>
     [DataField]
-    public float AnomalyPyroChanceSevere = 375f;
-
-    /// <summary>
-    /// The chance for a pyroclastic anomaly to spawn when power or damage is high, and the power penalty threshold is exceeded
-    /// </summary>
-    [DataField]
-    public float AnomalyPyroChance = 2500f;
+    public float AnomalySeverePenaltyChance = 150f;
 
     /// <summary>
     /// The base number of rads produced by the crystal.
