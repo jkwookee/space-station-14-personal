@@ -44,16 +44,7 @@ public sealed partial class SupermatterComponent : Component
     public EntProtoId SliverPrototype = "SupermatterSliver";
 
     [DataField]
-    public EntProtoId AnomalyBluespaceSpawnPrototype = "AnomalyBluespace";
-
-    [DataField]
-    public EntProtoId AnomalyGravitySpawnPrototype = "AnomalyGravity";
-
-    [DataField]
-    public EntProtoId AnomalyPyroSpawnPrototype = "AnomalyPyroclastic";
-
-    [DataField]
-    public EntProtoId CollisionResultPrototype = "Ash";
+    public EntProtoId AnomalyPrototype = "RandomAnomalySpawner";
 
     [DataField]
     public List<ProtoId<SupermatterDelaminationPrototype>> EnabledDelaminations = new();
@@ -161,12 +152,6 @@ public sealed partial class SupermatterComponent : Component
     public float MoleHeatPenaltyThreshold;
 
     /// <summary>
-    /// The lifetime of a supermatter-spawned anomaly.
-    /// </summary>
-    [DataField]
-    public float AnomalyLifetime = 60f;
-
-    /// <summary>
     /// The minimum distance from the supermatter that anomalies will spawn at
     /// </summary>
     [DataField]
@@ -182,13 +167,13 @@ public sealed partial class SupermatterComponent : Component
     /// The chance for a anomaly to spawn while supermatter is active
     /// </summary>
     [DataField]
-    public float AnomalyNaturalChance = 6000f;
+    public float AnomalyNaturalChance = 8000f;
 
     /// <summary>
     /// The chance for a anomaly to spawn while supermatter has reached the damage penalty threshold
     /// </summary>
     [DataField]
-    public float AnomalyDamagePenaltyChance = 150f;
+    public float AnomalyDamagePenaltyChance = 250f;
 
     /// <summary>
     /// The chance for a anomaly to spawn while supermatter is active and the power penalty threshold is exceeded

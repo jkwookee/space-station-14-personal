@@ -39,10 +39,7 @@ public sealed partial class SupermatterSystem
 
         UpdateAccent(ent);
 
-        if (ent.Comp.Power > Config.GetCVar(ImpCCVars.SupermatterPowerPenaltyThreshold) || ent.Comp.Damage > ent.Comp.DamagePenaltyPoint)
-        {
-            GenerateAnomalies(ent, ent.Comp); // port todo extract to new system
-        }
+        GenerateAnomalies(ent, ent.Comp); // port todo extract to new system
     }
 
     /// <summary>
@@ -99,20 +96,15 @@ public sealed partial class SupermatterSystem
         // Ramps up or down in increments of 0.02 up to the proportion of CO2
         // Given infinite time, powerloss_dynamic_scaling = co2comp
         // Some value from 0-1
-        if (absorbedMoles > Config.GetCVar(ImpCCVars.SupermatterPowerlossInhibitionMoleThreshold) &&
-            gasComposition[Gas.CarbonDioxide] > Config.GetCVar(ImpCCVars.SupermatterPowerlossInhibitionGasThreshold))
-        {
-            var co2powerloss = Math.Clamp(gasComposition[Gas.CarbonDioxide] - ent.Comp.PowerlossDynamicScaling, -0.02f, 0.02f);
-            ent.Comp.PowerlossDynamicScaling = Math.Clamp(ent.Comp.PowerlossDynamicScaling + co2powerloss, 0f, 1f);
-        }
-        else
-            ent.Comp.PowerlossDynamicScaling = Math.Clamp(ent.Comp.PowerlossDynamicScaling - 0.05f, 0f, 1f);
+        var co2powerloss = Math.Clamp(gasComposition[Gas.CarbonDioxide] - ent.Comp.PowerlossDynamicScaling, -0.02f, 0.02f);
+        ent.Comp.PowerlossDynamicScaling = Math.Clamp(ent.Comp.PowerlossDynamicScaling + co2powerloss, 0f, 1f);
 
-        // Ranges from 0~1(1 - (0~1 * 1~(1.5 * (mol / 150))))
+        var powerlossMoleScaling = ent.Comp.GasStorage.TotalMoles * (1f / 20f);
+
+        // Ranges from 0~1(1 - (0~1 * (1 / 20)))
         // We take the mol count, and scale it to be our inhibitor
-        ent.Comp.PowerlossInhibitor = Math.Clamp(
-            1 - ent.Comp.PowerlossDynamicScaling * Math.Clamp(absorbedMoles / Config.GetCVar(ImpCCVars.SupermatterPowerlossInhibitionMoleBoostThreshold), 1f, 1.5f),
-            0f, 1f);
+        ent.Comp.PowerlossInhibitor =
+            Math.Clamp(1 - ent.Comp.PowerlossDynamicScaling * powerlossMoleScaling, 0f, 1f);
 
         if (ent.Comp.MatterPower != 0)
         {
@@ -146,9 +138,14 @@ public sealed partial class SupermatterSystem
         ent.Comp.Power = Math.Max(ent.Comp.Power - ent.Comp.PowerLoss, 0f);
         DirtyFields(ent.Owner, ent.Comp, MetaData(ent.Owner), nameof(SupermatterComponent.Power), nameof(SupermatterComponent.PowerLoss));
 
-        // Adjust the gravity pull range
+        // Adjust the gravity pull range and acceleration based on absorbed moles
         if (_gravityWellQuery.TryComp(ent.Owner, out var gravityWell))
-            gravityWell.MaxRange = Math.Clamp(ent.Comp.Power / 850f, 0.5f, 3f);
+        {
+            // All maxed out at 500 absorbed moles, above that only occurance rate changes
+            gravityWell.MaxRange = Math.Clamp(ent.Comp.GasStorage.TotalMoles / 50f, 0.5f, 10f);
+            gravityWell.BaseRadialAcceleration = Math.Clamp(ent.Comp.GasStorage.TotalMoles / 5f, 1f, 100f);
+            gravityWell.BaseTangentialAcceleration = Math.Clamp(ent.Comp.GasStorage.TotalMoles / 10f, 0.1f, 50f);
+        }
 
         // Log the first powering of the supermatter
         if (ent.Comp.Power > 0 && !ent.Comp.HasBeenPowered)
@@ -269,8 +266,8 @@ public sealed partial class SupermatterSystem
         var powerDamage = Math.Max(ent.Comp.Power - Config.GetCVar(ImpCCVars.SupermatterPowerPenaltyThreshold), 0f) / 500f * ent.Comp.DamageMultiplier;
         totalDamage += powerDamage;
 
-        // Mol count only starts affecting damage when it is above 1800
-        var moleDamage = Math.Max(moles - Config.GetCVar(ImpCCVars.SupermatterMolePenaltyThreshold), 0f) / 80 * ent.Comp.DamageMultiplier;
+        // Mol count only starts affecting damage when it is above 600
+        var moleDamage = Math.Max(moles - Config.GetCVar(ImpCCVars.SupermatterMolePenaltyThreshold), 0f) / 50f * ent.Comp.DamageMultiplier;
         totalDamage += moleDamage;
 
         // Healing damage

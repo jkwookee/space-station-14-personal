@@ -181,39 +181,38 @@ public sealed partial class SupermatterSystem : SharedSupermatterSystem
     /// </summary>
     private void GenerateAnomalies(EntityUid uid, SupermatterComponent sm)
     {
+        if (sm.Status == SupermatterStatusType.Inactive)
+            return;
+
         var xform = Transform(uid);
-        var anomalies = new List<string>();
+        var anomalies = 0;
 
         if (!TryComp<MapGridComponent>(xform.GridUid, out var grid))
             return;
 
-        // Bluespace anomaly: ~1/150 chance
-        if (Random.Prob(1 / sm.AnomalyBluespaceChance))
-            anomalies.Add(sm.AnomalyBluespaceSpawnPrototype);
+        // Note that this is run every atmos device update which is around 0.57 seconds
+        // Random anomaly chances: ~1/6000 when active
+        if (Random.Prob(1 / sm.AnomalyNaturalChance))
+            anomalies++;
+        // Random anomaly chances: ~1/150 if damage penalty
+        if (sm.Damage > sm.DamagePenaltyPoint && Random.Prob(1 / sm.AnomalyDamagePenaltyChance))
+            anomalies++;
+        // Random anomaly chances: ~1/500 if power penalty
+        if (sm.Power > Config.GetCVar(ImpCCVars.SupermatterPowerPenaltyThreshold) && Random.Prob(1 / sm.AnomalyPenaltyChance))
+            anomalies++;
+        // Random anomaly chances: ~1/150 if severe power penalty
+        if (sm.Power > Config.GetCVar(ImpCCVars.SupermatterSeverePowerPenaltyThreshold) && Random.Prob(1 / sm.AnomalySeverePenaltyChance))
+            anomalies++;
 
-        // Gravity anomaly: ~1/150 chance above SeverePowerPenaltyThreshold, or ~1/750 chance otherwise
-        if (sm.Power > Config.GetCVar(ImpCCVars.SupermatterSeverePowerPenaltyThreshold) && Random.Prob(1 / sm.AnomalyGravityChanceSevere) ||
-            Random.Prob(1 / sm.AnomalyGravityChance))
-            anomalies.Add(sm.AnomalyGravitySpawnPrototype);
-
-        // Pyroclastic anomaly: ~1/375 chance above SeverePowerPenaltyThreshold, or ~1/2500 chance above PowerPenaltyThreshold
-        if (sm.Power > Config.GetCVar(ImpCCVars.SupermatterSeverePowerPenaltyThreshold) && Random.Prob(1 / sm.AnomalyPyroChanceSevere) ||
-            sm.Power > Config.GetCVar(ImpCCVars.SupermatterPowerPenaltyThreshold) && Random.Prob(1 / sm.AnomalyPyroChance))
-            anomalies.Add(sm.AnomalyPyroSpawnPrototype);
-
-        var count = anomalies.Count;
-        if (count == 0)
+        if (anomalies == 0)
             return;
 
-        var tiles = GetSpawningPoints(uid, sm, count);
+        var tiles = GetSpawningPoints(uid, sm, anomalies);
         if (tiles == null)
             return;
 
         foreach (var tileref in tiles)
-        {
-            var anomaly = Spawn(Random.Pick(anomalies), Map.ToCenterCoordinates(tileref, grid));
-            EnsureComp<TimedDespawnComponent>(anomaly).Lifetime = sm.AnomalyLifetime;
-        }
+            Spawn(sm.AnomalyPrototype, Map.ToCenterCoordinates(tileref, grid));
     }
 
     /// <summary>
@@ -319,7 +318,13 @@ public sealed partial class SupermatterSystem : SharedSupermatterSystem
         if (!_gravityWellQuery.TryComp(ent, out var gravityWell))
             return;
 
-        var nextPulse = 0.5f * Random.NextFloat(1f, 30f);
+        var randomPulse = 0.5f * Random.NextFloat(1f, 30f);
+        var nextPulse = randomPulse;
+
+        // Weights nextPulse to be closer to 0.5 depending on amount of moles, otherwise randomPulse
+        if (ent.Comp.GasStorage is { })
+            nextPulse = Math.Clamp(randomPulse / (ent.Comp.GasStorage.TotalMoles / 150f), 0.5f, randomPulse);
+
         _gravityWell.SetPulsePeriod(ent, TimeSpan.FromSeconds(nextPulse), gravityWell);
 
         var audioParams = AudioParams.Default.WithMaxDistance(gravityWell.MaxRange);

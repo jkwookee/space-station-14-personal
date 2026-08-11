@@ -14,15 +14,15 @@ public sealed partial class SupermatterDelaminationPrototype : IPrototype, IInhe
 {
     /// <inheritdoc/>
     [IdDataField]
-    public string ID { get; set; } = default!;
+    public string ID { get; private set; } = default!;
 
     /// <inheritdoc/>
     [ParentDataField(typeof(AbstractPrototypeIdArraySerializer<SupermatterDelaminationPrototype>))]
-    public string[]? Parents { get; set; }
+    public string[]? Parents { get; private set; }
 
     /// <inheritdoc/>
     [NeverPushInheritance, AbstractDataField]
-    public bool Abstract { get; set; }
+    public bool Abstract { get; private set; }
 
     /// <summary>
     /// The requirements for this delamination to occur. All non-null requirements must be met for this delamination to be valid.
