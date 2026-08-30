@@ -255,7 +255,7 @@ public sealed partial class SupermatterSystem
         // Random anomaly chances: ~1/7500 when active
         if (_random.Prob(1 / sm.AnomalyNaturalChance))
             anomalies++;
-        // Random anomaly chances: ~1/500 if damage penalty
+        // Random anomaly chances: ~1/350 if damage penalty
         if (sm.Damage > sm.DamagePenaltyPoint && _random.Prob(1 / sm.AnomalyDamagePenaltyChance))
             anomalies++;
         // Random anomaly chances: ~1/500 if power penalty
