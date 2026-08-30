@@ -113,9 +113,9 @@ public sealed partial class SupermatterSystem
 
         var co2powerloss = Math.Clamp(sm.GasComposition.GetMoles(Gas.CarbonDioxide) - sm.PowerlossDynamicScaling, -0.02f, 0.02f);
         sm.PowerlossDynamicScaling = Math.Clamp(sm.PowerlossDynamicScaling + co2powerloss, 0f, 1f);
-        var powerlossMoleScaling = sm.GasStorage.TotalMoles * (1f / 40f);
+        var powerlossMoleScaling = sm.GasStorage.TotalMoles * (1f / 20f);
 
-        // Ranges from 0~1(1 - (0~1 * (1 / 40)))
+        // Ranges from 0~1(1 - (0~1 * (1 / 20)))
         // We take the mol count, and scale it to be our inhibitor
         sm.PowerlossInhibitor =
             Math.Clamp(1 - sm.PowerlossDynamicScaling * powerlossMoleScaling, 0f, 1f);
@@ -205,7 +205,7 @@ public sealed partial class SupermatterSystem
     /// </summary>
     private void SupermatterZap(EntityUid uid, SupermatterComponent sm)
     {
-        if (sm.Damage < sm.DamagePenaltyPoint || sm.Power < _config.GetCVar(EECCVars.SupermatterPowerPenaltyThreshold))
+        if (sm.Damage < sm.DamagePenaltyPoint && sm.Power < _config.GetCVar(EECCVars.SupermatterPowerPenaltyThreshold))
             return;
 
         var zapPower = 0;
@@ -248,11 +248,11 @@ public sealed partial class SupermatterSystem
         if (!TryComp<MapGridComponent>(xform.GridUid, out var grid))
             return;
 
-        // Note that this is run every atmos device update which is around 0.57 seconds
-        // Random anomaly chances: ~1/6000 when active
+        // Note that this is run every atmos device update which is dependent on server settings which for Imp is about 0.53, see AtmosphereProcessingState
+        // Random anomaly chances: ~1/7500 when active
         if (_random.Prob(1 / sm.AnomalyNaturalChance))
             anomalies++;
-        // Random anomaly chances: ~1/150 if damage penalty
+        // Random anomaly chances: ~1/500 if damage penalty
         if (sm.Damage > sm.DamagePenaltyPoint && _random.Prob(1 / sm.AnomalyDamagePenaltyChance))
             anomalies++;
         // Random anomaly chances: ~1/500 if power penalty
