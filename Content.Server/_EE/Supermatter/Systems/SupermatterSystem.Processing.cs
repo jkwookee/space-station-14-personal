@@ -210,6 +210,7 @@ public sealed partial class SupermatterSystem
 
         var zapPower = 0;
         var zapCount = 0;
+        var zapArc = 0; // The arcs can explode
         var zapRange = Math.Clamp(sm.Power / 1000, 2, 7);
 
         if (_random.Prob(0.05f))
@@ -222,16 +223,18 @@ public sealed partial class SupermatterSystem
         {
             zapPower += 1;
             zapCount += 1;
+            zapArc += 1;
         }
 
         if (sm.Power >= _config.GetCVar(EECCVars.SupermatterCriticalPowerPenaltyThreshold))
         {
             zapPower += 1;
             zapCount += 1;
+            zapArc += 1;
         }
 
         if (zapCount >= 1)
-            _lightning.ShootRandomLightnings(uid, zapRange, zapCount, sm.LightningPrototypes[zapPower], hitCoordsChance: sm.ZapHitCoordinatesChance, canExplode: false);
+            _lightning.ShootRandomLightnings(uid, zapRange, zapCount, sm.LightningPrototypes[zapPower], arcDepth: zapArc, hitCoordsChance: sm.ZapHitCoordinatesChance, canExplode: false);
     }
 
     /// <summary>
