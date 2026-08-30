@@ -210,7 +210,7 @@ public sealed partial class SupermatterSystem
 
         var zapPower = 0;
         var zapCount = 0;
-        var zapArc = 0; // Arcs can explode
+        var zapArc = 0;
         var zapRange = Math.Clamp(sm.Power / 1000, 2, 7);
 
         if (_random.Prob(0.05f))
