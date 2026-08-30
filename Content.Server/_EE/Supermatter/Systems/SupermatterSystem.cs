@@ -385,7 +385,7 @@ public sealed partial class SupermatterSystem : EntitySystem
         EntityManager.QueueDeleteEntity(target);
 
         if (TryComp<SinguloFoodComponent>(target, out var food))
-            sm.MatterPower += food.Energy;
+            sm.MatterPower += food.Energy * 100f;
         else if (projectile != null)
             sm.Power += (float)projectile.Damage.GetTotal();
         else
