@@ -564,8 +564,6 @@ public sealed partial class SupermatterSystem
 
             SendSupermatterAnnouncement(uid, sm, message, global);
 
-            global = false;
-
             if (sm.Power >= _config.GetCVar(EECCVars.SupermatterPowerPenaltyThreshold))
             {
                 message = Loc.GetString("supermatter-threshold-power");
