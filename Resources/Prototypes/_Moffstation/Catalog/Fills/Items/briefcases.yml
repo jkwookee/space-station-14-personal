@@ -22,7 +22,7 @@
       storagebase: !type:GroupSelector
         rolls: !type:RangeNumberSelector
           range: 2, 3
-        children: # imp comment, don't make a possiblity of the briefcase not having enough space and up to 4 TC before weight reduction
+        children: # imp comment, up to 2x4 max and up to 4 TC before weight reduction
         # Weapons
         - id: EnergyDaggerLoud
         - id: WeaponPistolViper
@@ -57,7 +57,6 @@
         - id: BalloonOperative
         # Imp start
         # Weapons
-        # Up to 2x4 is fine, since 3 2x4s can fit
         - id: RoseSyndicate
         - id: ThrowingKnife
         - id: ClothingHandsKnuckleDustersSyndicate
