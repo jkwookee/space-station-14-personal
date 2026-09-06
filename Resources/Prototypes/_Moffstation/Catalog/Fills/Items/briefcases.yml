@@ -80,7 +80,7 @@
         - id: WeaponEnergyCrossbow
         - id: WeaponAnaconda
           weight: 0.125
-        - id: K2903 Star Rifle
+        - id: WeaponSniperStarService
           weight: 0.125
         - id: WeaponShotgunHushpup
           weight: 0.05
