@@ -12,7 +12,7 @@
       - id: RedspaceLifeline # imp, changed to RedspaceLifeline effect from EffectFlashRedspace
 
 - type: entity
-  parent: [ BaseSubfloorAnchorStorageAnchored, BriefcaseSyndie, BaseSyndicateContraband ]
+  parent: [ BaseSubfloorAnchorStorageAnchored, CybersunBriefcase ] # imp, parenting changed from BriefcaseSyndie and BaseSyndicateContraband to CybersunBriefcase
   id: BriefcaseSyndieDeadDrop
   name: syndicate briefcase
   suffix: Dead Drop, Do Not Map
