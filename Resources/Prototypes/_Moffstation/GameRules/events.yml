@@ -7,10 +7,10 @@
     # startAnnouncement: station-syndicate-dead-drop-announcement imp, announcement system different
     # startAudio: imp, announcement system different
     #   path: /Audio/Announcements/attention.ogg
-    earliestStart: 10 # imp, raised to 10 from 0
+    earliestStart: 20 # imp, raised to 20 from 0
     duration: 1
-    reoccurrenceDelay: 20 # imp
-    minimumPlayers: 5 # imp, raised to 5 from 1
+    reoccurrenceDelay: 25 # imp
+    minimumPlayers: 20 # imp, raised to 20 from 1
     # maxOccurrences: 2 imp removal
     weight: 4 # imp, lowered to 4 from 10
   - type: RandomSpawnRule
