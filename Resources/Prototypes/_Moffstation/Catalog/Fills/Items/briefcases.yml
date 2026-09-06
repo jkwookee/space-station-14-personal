@@ -14,7 +14,7 @@
 - type: entity
   parent: [ BaseSubfloorAnchorStorageAnchored, CybersunBriefcase ] # imp, parenting changed from BriefcaseSyndie and BaseSyndicateContraband to CybersunBriefcase
   id: BriefcaseSyndieDeadDrop
-  name: syndicate briefcase
+  # name: syndicate briefcase imp removal, parent has a better name
   suffix: Dead Drop, Do Not Map
   components:
   - type: EntityTableContainerFill
@@ -106,6 +106,10 @@
         - id: BrosGrenade
           weight: 0.05
         # Clothing
+        - id: ClothingHeadHelmetRaid
+          weight: 0.05
+        - id: ClothingOuterArmorRaid
+          weight: 0.025
         # Tools
         - id: SoapSyndie
         - id: SlipocalypseClusterSoap
