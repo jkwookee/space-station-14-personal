@@ -4,9 +4,9 @@
   id: SyndicateDeadDrop
   components:
   - type: StationEvent
-    # startAnnouncement: station-syndicate-dead-drop-announcement imp announcement system different
-    startAudio:
-      path: /Audio/Announcements/attention.ogg
+    # startAnnouncement: station-syndicate-dead-drop-announcement imp, announcement system different
+    # startAudio: imp, announcement system different
+    #   path: /Audio/Announcements/attention.ogg
     earliestStart: 10 # imp, raised to 10 from 0
     duration: 1
     reoccurrenceDelay: 20 # imp
