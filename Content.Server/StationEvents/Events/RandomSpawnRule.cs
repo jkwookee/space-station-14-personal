@@ -49,7 +49,7 @@ public sealed class RandomSpawnRule : StationEventSystem<RandomSpawnRuleComponen
     /// Imp edited summary.
     /// Finds a random tile on the station and spawns a entity and its effect if specified.
     /// Conditionally checks for if the tile has another dynamic or static entity on it before spawning.
-    /// Also conditionally sends a radio message.
+    /// Conditionally sends a radio message with the sender being the name of the entity spawned. 
     /// </summary>
     protected override void Started(EntityUid uid, RandomSpawnRuleComponent comp, GameRuleComponent gameRule, GameRuleStartedEvent args)
     {
