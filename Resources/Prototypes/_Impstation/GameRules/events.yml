@@ -356,13 +356,12 @@
   parent: BaseStationEventShortDelay
   components:
   - type: StationEvent
-    weight: 2
+    weight: 3
     earliestStart: 20
     reoccurrenceDelay: 30
     minimumPlayers: 25
   - type: RandomSpawnRule
-    prototype: LandmineOrDudRareGibSpawner
-    spawnEffect: EffectDesynchronizerExit
+    prototype: ExplosiveMineResurgenceSpawner
     minMaxEntities:
       min: 8
       max: 10
