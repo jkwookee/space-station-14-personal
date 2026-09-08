@@ -87,6 +87,8 @@
           weight: 0.05
         - id: WeaponSubMachineGunC20r
           weight: 0.05
+        - id: WeaponShotgunBulldog
+          weight: 0.05
         - id: WeaponPlasmaAnanke
           weight: 0.05
         - id: WeaponPistolZipperAP
