@@ -24,6 +24,7 @@ using Robust.Shared.Physics.Components;
 using Robust.Shared.Player;
 using Robust.Shared.Utility;
 using FTLMapComponent = Content.Shared.Shuttles.Components.FTLMapComponent;
+using Content.Server._Impstation.Shuttles.Components; // imp
 
 namespace Content.Server.Shuttles.Systems;
 
@@ -265,7 +266,8 @@ public sealed partial class ShuttleSystem
         Angle angle,
         float? startupTime = null,
         float? hyperspaceTime = null,
-        string? priorityTag = null)
+        string? priorityTag = null,
+        bool destroyFloor = false) // imp
     {
         if (!TrySetupFTL(shuttleUid, component, out var hyperspace))
             return;
@@ -281,6 +283,7 @@ public sealed partial class ShuttleSystem
         hyperspace.TargetCoordinates = coordinates;
         hyperspace.TargetAngle = angle;
         hyperspace.PriorityTag = priorityTag;
+        hyperspace.DestroyFloor = destroyFloor; // imp
 
         _console.RefreshShuttleConsoles(shuttleUid);
 
@@ -505,6 +508,14 @@ public sealed partial class ShuttleSystem
 
             mapId = mapCoordinates.MapId;
         }
+        // imp start, entire else if so that when TryFTLProximity is implemented as the default else this still works
+        else if (entity.Comp1.DestroyFloor)
+        {
+            mapId = _transform.GetMapId(target);
+            _transform.SetCoordinates(uid, xform, target, rotation: entity.Comp1.TargetAngle);
+            RemoveTiles(entity);
+        }
+        // imp end
         // Position ftl
         else
         {
@@ -548,7 +559,10 @@ public sealed partial class ShuttleSystem
         comp.StateTime = StartEndTime.FromCurTime(_gameTiming, cooldown);
         _console.RefreshShuttleConsoles(uid);
         _mapSystem.SetPaused(mapId, false);
-        Smimsh(uid, xform: xform);
+        if (!entity.Comp1.DestroyFloor) // imp, entities need to update before smimsh works properly if tiles are removed
+            Smimsh(uid, xform: xform);
+        else // imp
+            AddComp<SmimshComponent>(uid); // imp
 
         var ftlEvent = new FTLCompletedEvent(uid, _mapSystem.GetMap(mapId));
         RaiseLocalEvent(uid, ref ftlEvent, true);
@@ -596,6 +610,19 @@ public sealed partial class ShuttleSystem
             }
         }
     }
+
+    // imp start, entities need to update before smimsh works properly if tiles are removed
+    private void UpdateSmimsh()
+    {
+        var query = EntityQueryEnumerator<SmimshComponent>();
+
+        while (query.MoveNext(out var uid, out _))
+        {
+            Smimsh(uid);
+            RemCompDeferred<SmimshComponent>(uid);
+        }
+    }
+    // imp end
 
     private float GetSoundRange(EntityUid uid)
     {
@@ -1011,5 +1038,49 @@ public sealed partial class ShuttleSystem
 
         var ev = new ShuttleFlattenEvent(xform.MapUid.Value, aabbs);
         RaiseLocalEvent(ref ev);
+    }
+
+    /// <summary>
+    /// Imp.
+    /// Removes all tiles that are under the grid upon FTL.
+    /// </summary>
+    private void RemoveTiles(EntityUid uid, FixturesComponent? manager = null, TransformComponent? xform = null)
+    {
+        if (!Resolve(uid, ref manager, ref xform) || xform.MapUid == null)
+            return;
+
+        // Flatten anything not parented to a grid.
+        var transform = _physics.GetRelativePhysicsTransform((uid, xform), xform.MapUid.Value);
+        var grids = new List<Entity<MapGridComponent>>();
+        var tilesToRemove = new List<TileRef>();
+
+        foreach (var fixture in manager.Fixtures.Values)
+        {
+            if (!fixture.Hard)
+                continue;
+
+            // Shift it slightly
+            // Create a small border around it.
+            var aabb = fixture.Shape.ComputeAABB(transform, 0).Enlarged(0.2f);
+
+            _mapManager.FindGridsIntersecting(xform.MapID, aabb, ref grids);
+            foreach (var intersectingGrid in grids)
+            {
+                if (intersectingGrid.Owner == xform.GridUid)
+                    continue;
+
+                foreach (var tile in _mapSystem.GetTilesIntersecting(intersectingGrid.Owner, intersectingGrid.Comp, aabb))
+                    tilesToRemove.Add(tile);
+            }
+            grids.Clear();
+        }
+
+        foreach (var tile in tilesToRemove)
+        {
+            if (!TryComp<MapGridComponent>(tile.GridUid, out var gridComp))
+                continue;
+
+            _mapSystem.SetTile(tile.GridUid, gridComp, tile.GridIndices, Tile.Empty);
+        }
     }
 }

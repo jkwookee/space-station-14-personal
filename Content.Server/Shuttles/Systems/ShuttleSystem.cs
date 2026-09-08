@@ -96,6 +96,7 @@ public sealed partial class ShuttleSystem : SharedShuttleSystem
     {
         base.Update(frameTime);
         UpdateHyperspace();
+        UpdateSmimsh(); // imp
     }
 
     private void OnGridInit(GridInitializeEvent ev)

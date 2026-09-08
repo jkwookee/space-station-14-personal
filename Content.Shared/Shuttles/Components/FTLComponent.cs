@@ -61,4 +61,11 @@ public sealed partial class FTLComponent : Component
 
     [DataField]
     public EntityUid? TravelStream;
+
+    /// <summary>
+    /// Imp.
+    /// If to destroy the floor area the FTL transports to
+    /// </summary>
+    [DataField]
+    public bool DestroyFloor;
 }
