@@ -514,9 +514,6 @@ public sealed partial class ShuttleSystem
             mapId = _transform.GetMapId(target);
             _transform.SetCoordinates(uid, xform, target, rotation: entity.Comp1.TargetAngle);
             RemoveTiles(entity);
-
-            if (TryComp<BroadphaseComponent>(xform.MapUid, out var broadphase))
-                _broadphase.Rebuild(broadphase, false);
         }
         // imp end
         // Position ftl
@@ -562,8 +559,10 @@ public sealed partial class ShuttleSystem
         comp.StateTime = StartEndTime.FromCurTime(_gameTiming, cooldown);
         _console.RefreshShuttleConsoles(uid);
         _mapSystem.SetPaused(mapId, false);
-        // imp MABYE DO THE BROADPHASE REBIULD HERE IDK SCARY STUFF
-        Smimsh(uid, xform: xform);
+        if (!entity.Comp1.DestroyFloor) // imp, entities need to update before smimsh works properly if tiles are removed
+            Smimsh(uid, xform: xform);
+        else // imp
+            AddComp<SmimshComponent>(uid); // imp
 
         var ftlEvent = new FTLCompletedEvent(uid, _mapSystem.GetMap(mapId));
         RaiseLocalEvent(uid, ref ftlEvent, true);
@@ -611,6 +610,19 @@ public sealed partial class ShuttleSystem
             }
         }
     }
+
+    // imp start, entities need to update before smimsh works properly if tiles are removed
+    private void UpdateSmimsh()
+    {
+        var query = EntityQueryEnumerator<SmimshComponent>();
+
+        while (query.MoveNext(out var uid, out _))
+        {
+            Smimsh(uid);
+            RemCompDeferred<SmimshComponent>(uid);
+        }
+    }
+    // imp end
 
     private float GetSoundRange(EntityUid uid)
     {
@@ -1034,7 +1046,6 @@ public sealed partial class ShuttleSystem
     /// </summary>
     private void RemoveTiles(EntityUid uid, FixturesComponent? manager = null, TransformComponent? xform = null)
     {
-        // just merge all of this into smimsh if can get working
         if (!Resolve(uid, ref manager, ref xform) || xform.MapUid == null)
             return;
 

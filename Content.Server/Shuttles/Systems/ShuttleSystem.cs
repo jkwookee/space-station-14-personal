@@ -63,7 +63,6 @@ public sealed partial class ShuttleSystem : SharedShuttleSystem
     [Dependency] private readonly ThrusterSystem _thruster = default!;
     [Dependency] private readonly UserInterfaceSystem _uiSystem = default!;
     [Dependency] private readonly TurfSystem _turf = default!;
-    [Dependency] private readonly SharedBroadphaseSystem _broadphase = default!; // imp
 
     private EntityQuery<BuckleComponent> _buckleQuery;
     private EntityQuery<MapGridComponent> _gridQuery;
@@ -97,6 +96,7 @@ public sealed partial class ShuttleSystem : SharedShuttleSystem
     {
         base.Update(frameTime);
         UpdateHyperspace();
+        UpdateSmimsh(); // imp
     }
 
     private void OnGridInit(GridInitializeEvent ev)
