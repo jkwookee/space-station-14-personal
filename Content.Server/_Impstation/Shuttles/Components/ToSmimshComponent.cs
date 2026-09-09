@@ -7,5 +7,9 @@ namespace Content.Server._Impstation.Shuttles.Components
     /// Marker component for FasterThanLight to smimsh after an update has passed
     /// </summary>
     [RegisterComponent]
-    public sealed partial class SmimshComponent : Component;
+    public sealed partial class ToSmimshComponent : Component
+    {
+        [ViewVariables(VVAccess.ReadOnly)]
+        public HashSet<EntityUid> FTLTravellingEntities;
+    }
 }
