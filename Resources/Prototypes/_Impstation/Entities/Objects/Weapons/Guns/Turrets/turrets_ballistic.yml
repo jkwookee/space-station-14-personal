@@ -1,0 +1,4 @@
+- type: entity
+  parent: WeaponTurretSyndicateDisposable
+  id: WeaponTurretSyndicateDropPod
+  suffix: Syndicate Drop Pod

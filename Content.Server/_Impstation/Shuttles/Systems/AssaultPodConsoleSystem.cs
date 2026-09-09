@@ -96,7 +96,7 @@ namespace Content.Server._Impstation.Shuttles.Systems
                     Angle.Zero,
                     hyperspaceTime: comp.TravelTime,
                     travelSound: comp.TravelSound,
-                    arrivalSound: comp.testArrivalSound,
+                    // arrivalSound: comp.testArrivalSound,
                     destroyFloor: true);
 
                 SendDepartureAnnouncement(comp);
