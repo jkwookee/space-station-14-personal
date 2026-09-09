@@ -118,6 +118,17 @@
           type: StationMapBoundUserInterface
         enum.WiresUiKey.Key:
           type: WiresBoundUserInterface
+  - type: ContainerContainer
+    containers:
+      TC: !type:Container
+  - type: Lock
+  - type: UIRequiresLock
+    userInterfaceKeys:
+      - enum.StationMapUiKey.Key
+  - type: TriggerOnGotInsertedIntoContainer
+    containerId: TC
+  - type: LockOnTrigger
+    keysIn: [ unlock ]
   - type: Sprite
     layers:
     - map: ["computerLayerBody"]
