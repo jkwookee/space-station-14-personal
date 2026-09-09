@@ -64,6 +64,7 @@ namespace Content.Server._Impstation.Shuttles.Systems
                     shuttleComp,
                     targetCoordinates,
                     Angle.Zero,
+                    hyperspaceTime: comp.TravelTime,
                     travelSound: comp.TravelSound,
                     arrivalSound: comp.ArrivalSound,
                     destroyFloor: true);

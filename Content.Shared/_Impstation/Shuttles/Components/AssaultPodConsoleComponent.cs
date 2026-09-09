@@ -17,6 +17,9 @@ public sealed partial class AssaultPodConsoleComponent : Component
     public bool Activated;
 
     [DataField]
+    public float TravelTime = 11f;
+
+    [DataField]
     public TimeSpan TimeTillLaunch = TimeSpan.FromSeconds(30);
 
     [DataField]
@@ -30,7 +33,7 @@ public sealed partial class AssaultPodConsoleComponent : Component
     [DataField]
     public SoundSpecifier BeginDepartureAnnouncementSound = new SoundPathSpecifier("/Audio/_RMC14/Effects/ob_alert.ogg");
     [DataField]
-    public SoundSpecifier TravelSound = new SoundPathSpecifier("/Audio/_RMC14/Weapons/gun_orbital_travel.oggg");
+    public SoundSpecifier TravelSound = new SoundPathSpecifier("/Audio/_RMC14/Weapons/gun_orbital_travel.ogg");
     [DataField]
     public SoundSpecifier ArrivalSound = new SoundCollectionSpecifier("RMCExplosionBig");
 }
