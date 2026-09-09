@@ -266,6 +266,8 @@ public sealed partial class ShuttleSystem
         float? startupTime = null,
         float? hyperspaceTime = null,
         string? priorityTag = null,
+        SoundSpecifier? travelSound = null, // imp
+        SoundSpecifier? arrivalSound = null, // imp
         bool destroyFloor = false) // imp
     {
         if (!TrySetupFTL(shuttleUid, component, out var hyperspace))
@@ -282,6 +284,9 @@ public sealed partial class ShuttleSystem
         hyperspace.TargetCoordinates = coordinates;
         hyperspace.TargetAngle = angle;
         hyperspace.PriorityTag = priorityTag;
+        if (travelSound != null) // imp
+            hyperspace.TravelSound = travelSound; // imp
+        hyperspace.ArrivalSound = arrivalSound; // imp
         hyperspace.DestroyFloor = destroyFloor; // imp
 
         _console.RefreshShuttleConsoles(shuttleUid);
@@ -547,7 +552,9 @@ public sealed partial class ShuttleSystem
         _thruster.DisableLinearThrusters(entity.Comp2);
 
         comp.TravelStream = _audio.Stop(comp.TravelStream);
-        var audio = _audio.PlayPvs(_arrivalSound, uid);
+
+        var soundToPlay = comp.ArrivalSound == null ? _arrivalSound : comp.ArrivalSound; // imp
+        var audio = _audio.PlayPvs(soundToPlay, uid); // imp, switched from _arrivalSound to soundToPlay
         _audio.SetGridAudio(audio);
 
         if (TryComp<FTLDestinationComponent>(uid, out var dest))

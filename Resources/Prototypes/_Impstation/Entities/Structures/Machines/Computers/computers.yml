@@ -105,6 +105,7 @@
   description: Used to designate a location for the assault pod to land at. Requires 40 TC inserted first. 
   components:
   - type: AssaultPodConsole
+  - type: NukeopsStationMap
   - type: StationMap
     showLocation: false
     initializeWithStation: true
