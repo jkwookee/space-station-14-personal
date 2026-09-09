@@ -26,7 +26,7 @@ namespace Content.Server._Impstation.Shuttles.Systems
         [Dependency] private readonly SharedMapSystem _mapSystem = default!;
         [Dependency] private readonly ShuttleSystem _shuttle = default!;
         [Dependency] private readonly SharedStationSystem _station = default!;
-        private static readonly ProtoId<AlertLevelPrototype> GammaAlert = "Gamma";
+        private static readonly ProtoId<AlertLevelPrototype> RedAlert = "Red";
         private static readonly string CommandAnnouncementId = "commandReport";
 
         public override void Initialize()
@@ -100,7 +100,7 @@ namespace Content.Server._Impstation.Shuttles.Systems
                 if (!TryComp<NukeopsRuleComponent>(rule, out var nukeopsRule) || nukeopsRule.TargetStation == null)
                     continue;
 
-                _alertLevelSystem.SetLevel(nukeopsRule.TargetStation.Value, GammaAlert, true, true, true);
+                _alertLevelSystem.SetLevel(nukeopsRule.TargetStation.Value, RedAlert, true, true, true);
 
                 var stationGrid = _station.GetLargestGrid((nukeopsRule.TargetStation.Value, null));
                 if (stationGrid == null)

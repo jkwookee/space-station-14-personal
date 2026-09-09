@@ -79,7 +79,7 @@ public sealed partial class FTLComponent : Component
 
     /// <summary>
     /// Imp.
-    /// Entities on the FTL shuttle when arriving, only populated when DestroyFloor is true but if needed in the future could easily be populated for any scenario
+    /// Entities on the FTL shuttle when arriving, only populated when DestroyFloor is true but if needed in the future could easily be moved out of the conditional
     /// </summary>
     [ViewVariables(VVAccess.ReadOnly)]
     public HashSet<EntityUid> FTLTravellingEntities = new();
