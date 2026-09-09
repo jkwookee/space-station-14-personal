@@ -66,6 +66,13 @@ public sealed partial class FTLComponent : Component
     /// Imp.
     /// If to destroy the floor area the FTL transports to
     /// </summary>
-    [DataField]
+    [ViewVariables(VVAccess.ReadOnly)]
     public bool DestroyFloor;
+
+    /// <summary>
+    /// Imp.
+    /// Entities on the FTL shuttle when arriving, only populated when DestroyFloor is true 
+    /// </summary>
+    [ViewVariables(VVAccess.ReadOnly)]
+    public HashSet<EntityUid> FTLTravellingEntities = new();
 }

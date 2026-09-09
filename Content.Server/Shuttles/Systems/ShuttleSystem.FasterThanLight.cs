@@ -24,7 +24,6 @@ using Robust.Shared.Physics.Components;
 using Robust.Shared.Player;
 using Robust.Shared.Utility;
 using FTLMapComponent = Content.Shared.Shuttles.Components.FTLMapComponent;
-using Content.Server._Impstation.Shuttles.Components; // imp
 
 namespace Content.Server.Shuttles.Systems;
 
@@ -511,15 +510,12 @@ public sealed partial class ShuttleSystem
         // imp start, entire else if so that when TryFTLProximity is implemented as the default else this still works
         else if (comp.DestroyFloor)
         {
-            var childFTLEntities = new HashSet<EntityUid>();
             var enumerator = xform.ChildEnumerator;
             while (enumerator.MoveNext(out var child))
-                childFTLEntities.Add(child);
-
-            AddComp<ToSmimshComponent>(uid).FTLTravellingEntities = childFTLEntities;
+                comp.FTLTravellingEntities.Add(child);
 
             mapId = _transform.GetMapId(target);
-            _transform.SetCoordinates(uid, xform, target, rotation: entity.Comp1.TargetAngle);
+            _transform.SetCoordinates(uid, xform, target, rotation: comp.TargetAngle);
             RemoveTiles(entity);
         }
         // imp end
@@ -566,9 +562,7 @@ public sealed partial class ShuttleSystem
         comp.StateTime = StartEndTime.FromCurTime(_gameTiming, cooldown);
         _console.RefreshShuttleConsoles(uid);
         _mapSystem.SetPaused(mapId, false);
-
-        if (!comp.DestroyFloor) // imp, add conditional
-            Smimsh(uid, xform: xform);
+        Smimsh(uid, xform: xform);
 
         var ftlEvent = new FTLCompletedEvent(uid, _mapSystem.GetMap(mapId));
         RaiseLocalEvent(uid, ref ftlEvent, true);
@@ -616,19 +610,6 @@ public sealed partial class ShuttleSystem
             }
         }
     }
-
-    // imp start, entities need to update before smimsh works properly if tiles are removed
-    private void UpdateSmimsh()
-    {
-        var query = EntityQueryEnumerator<ToSmimshComponent>();
-
-        while (query.MoveNext(out var uid, out _))
-        {
-            Smimsh(uid);
-            RemCompDeferred<ToSmimshComponent>(uid);
-        }
-    }
-    // imp end
 
     private float GetSoundRange(EntityUid uid)
     {
@@ -977,9 +958,9 @@ public sealed partial class ShuttleSystem
     /// <summary>
     /// Flattens / deletes everything under the grid upon FTL.
     /// </summary>
-    private void Smimsh(EntityUid uid, FixturesComponent? manager = null, MapGridComponent? grid = null, TransformComponent? xform = null)
+    private void Smimsh(EntityUid uid, FixturesComponent? manager = null, MapGridComponent? grid = null, TransformComponent? xform = null, FTLComponent? ftl = null) // imp add FTLComponent? ftl = null
     {
-        if (!Resolve(uid, ref manager, ref grid, ref xform) || xform.MapUid == null)
+        if (!Resolve(uid, ref manager, ref grid, ref xform, ref ftl) || xform.MapUid == null) // imp add ref ftl
             return;
 
         if (!TryComp(xform.MapUid, out BroadphaseComponent? lookup))
@@ -1043,7 +1024,7 @@ public sealed partial class ShuttleSystem
         }
 
         // imp start
-        if (TryComp<ToSmimshComponent>(uid, out var toSmimshComp))
+        if (ftl.DestroyFloor)
         {
             var children = new List<EntityUid>();
             var enumerator = xform.ChildEnumerator;
@@ -1052,7 +1033,7 @@ public sealed partial class ShuttleSystem
 
             foreach (var child in children)
             {
-                if (!toSmimshComp.FTLTravellingEntities.Remove(child))
+                if (!ftl.FTLTravellingEntities.Remove(child))
                 {
                     if (_immuneQuery.HasComponent(child))
                         continue;
@@ -1061,8 +1042,7 @@ public sealed partial class ShuttleSystem
                     {
                         _logger.Add(LogType.Gib, LogImpact.Extreme, $"{ToPrettyString(child):player} got gibbed by the shuttle" +
                                                                     $" {ToPrettyString(uid)} arriving from FTL at {xform.Coordinates:coordinates}");
-                        var gibs = _gibbing.Gib(child);
-                        _immuneEnts.UnionWith(gibs);
+                        _gibbing.Gib(child);
                     }
 
                     QueueDel(child);
