@@ -32,10 +32,40 @@ namespace Content.Server._Impstation.Shuttles.Systems
         public override void Initialize()
         {
             base.Initialize();
+
+            SubscribeLocalEvent<AssaultPodConsoleComponent, MapInitEvent>(OnMapInit);
             Subs.BuiEvents<AssaultPodConsoleComponent>(StationMapUiKey.Key, subs =>
             {
                 subs.Event<ClickCoordMessage>(OnClickCoord);
             });
+        }
+
+        private void OnMapInit(Entity<AssaultPodConsoleComponent> ent, ref MapInitEvent args)
+        {
+            var shuttleUid = Transform(ent).GridUid;
+
+            if (!TryComp(shuttleUid, out ShuttleComponent? shuttleComp))
+                return;
+
+            shuttleComp.Enabled = false;
+        }
+
+        private void OnClickCoord(Entity<AssaultPodConsoleComponent> ent, ref ClickCoordMessage args)
+        {
+            if (ent.Comp.Activated)
+                return;
+
+            ent.Comp.Activated = true;
+            ent.Comp.LaunchTime = _timing.CurTime + ent.Comp.TimeTillLaunch;
+            ent.Comp.TravelCoordinates = args.Coordinates;
+
+            _chat.DispatchFilteredAnnouncement(
+                Filter.BroadcastMap(Transform(ent).MapID),
+                Loc.GetString(ent.Comp.BeginDepartureAnouncement),
+                sender: Loc.GetString(ent.Comp.BeginDepartureAnouncementSender),
+                announcementSound: ent.Comp.BeginDepartureAnnouncementSound,
+                colorOverride: Color.DarkRed
+            );
         }
 
         public override void Update(float frameTime)
@@ -66,31 +96,13 @@ namespace Content.Server._Impstation.Shuttles.Systems
                     Angle.Zero,
                     hyperspaceTime: comp.TravelTime,
                     travelSound: comp.TravelSound,
-                    arrivalSound: comp.ArrivalSound,
+                    arrivalSound: comp.testArrivalSound,
                     destroyFloor: true);
 
                 SendDepartureAnnouncement(comp);
 
                 comp.LaunchTime = null; // have it only activate once
             }
-        }
-
-        private void OnClickCoord(Entity<AssaultPodConsoleComponent> ent, ref ClickCoordMessage args)
-        {
-            if (ent.Comp.Activated)
-                return;
-
-            ent.Comp.Activated = true;
-            ent.Comp.LaunchTime = _timing.CurTime + ent.Comp.TimeTillLaunch;
-            ent.Comp.TravelCoordinates = args.Coordinates;
-
-            _chat.DispatchFilteredAnnouncement(
-                Filter.BroadcastMap(Transform(ent).MapID),
-                Loc.GetString(ent.Comp.BeginDepartureAnouncement),
-                sender: Loc.GetString(ent.Comp.BeginDepartureAnouncementSender),
-                announcementSound: ent.Comp.BeginDepartureAnnouncementSound,
-                colorOverride: Color.DarkRed
-            );
         }
 
         private void SendDepartureAnnouncement(AssaultPodConsoleComponent comp)

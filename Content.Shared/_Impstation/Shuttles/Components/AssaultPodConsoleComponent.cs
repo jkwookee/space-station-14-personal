@@ -36,4 +36,6 @@ public sealed partial class AssaultPodConsoleComponent : Component
     public SoundSpecifier TravelSound = new SoundPathSpecifier("/Audio/_RMC14/Weapons/gun_orbital_travel.ogg");
     [DataField]
     public SoundSpecifier ArrivalSound = new SoundCollectionSpecifier("RMCExplosionBig");
+    [DataField]
+    public SoundSpecifier testArrivalSound = new SoundPathSpecifier("/Audio/_RMC14/Explosion/bigboom1.ogg");
 }
