@@ -43,7 +43,7 @@ namespace Content.Server._Impstation.Shuttles.Systems
         {
             base.Initialize();
 
-            SubscribeLocalEvent<AssaultPodConsoleComponent, AfterInteractUsingEvent>(OnAfterInteractUsing);
+            SubscribeLocalEvent<AssaultPodConsoleComponent, InteractUsingEvent>(OnInteractUsing);
             SubscribeLocalEvent<AssaultPodConsoleComponent, WarDeclaredEvent>(OnWarDeclared);
             SubscribeLocalEvent<AssaultPodConsoleComponent, ComponentShutdown>(OnComponentShutdown);
             Subs.BuiEvents<AssaultPodConsoleComponent>(StationMapUiKey.Key, subs =>
@@ -104,17 +104,23 @@ namespace Content.Server._Impstation.Shuttles.Systems
             }
         }
 
-        private void OnAfterInteractUsing(Entity<AssaultPodConsoleComponent> ent, ref AfterInteractUsingEvent args)
+        private void OnInteractUsing(Entity<AssaultPodConsoleComponent> ent, ref InteractUsingEvent args)
         {
+            if (args.Handled)
+                return;
+
             if (ent.Comp.CostPayed || ent.Comp.WarDeclared)
                 return;
 
             if (!TryComp<StackComponent>(args.Used, out var stack) || stack.StackTypeId != TelecrystalStackPrototype)
                 return;
 
-            int inserted;
-            for (inserted = 0; inserted < stack.Count; inserted++)
+            var inserted = 0;
+            while (inserted < stack.Count)
             {
+                inserted++;
+                ent.Comp.InsertedTelecrystals++;
+
                 if (ent.Comp.InsertedTelecrystals >= ent.Comp.Cost)
                 {
                     ent.Comp.CostPayed = true;
@@ -129,12 +135,12 @@ namespace Content.Server._Impstation.Shuttles.Systems
                     _lockSystem.Unlock(ent, args.User);
                     break;
                 }
-
-                ent.Comp.InsertedTelecrystals++;
             }
 
             _stackSystem.ReduceCount((args.Used, stack), inserted);
             _lockSystem.SetCustomLockText(ent, Loc.GetString(ent.Comp.LockExamineText, ("telecrystals", ent.Comp.Cost - ent.Comp.InsertedTelecrystals)));
+
+            args.Handled = true;
         }
 
         private void OnClickCoord(Entity<AssaultPodConsoleComponent> ent, ref ClickCoordMessage args)
