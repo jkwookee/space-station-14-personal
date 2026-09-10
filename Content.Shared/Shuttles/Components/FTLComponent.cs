@@ -67,7 +67,7 @@ public sealed partial class FTLComponent : Component
     /// Arrival sound that plays when you arrive.
     /// Implement in the other public FTL methods if you want to modify FTL sounds from a non-position FTL.
     /// </summary>
-    [ViewVariables(VVAccess.ReadWrite)]
+    [ViewVariables]
     public SoundSpecifier? ArrivalSound;
 
     /// <summary>

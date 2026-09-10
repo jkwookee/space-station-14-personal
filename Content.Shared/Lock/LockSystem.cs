@@ -565,6 +565,16 @@ public sealed class LockSystem : EntitySystem
                 args.User);
         }
     }
+
+    // imp start
+    public void SetCustomLockText(EntityUid uid, string customLockText, LockComponent? lockComp = null)
+    {
+        if (!Resolve(uid, ref lockComp))
+            return;
+
+        lockComp.CustomLockText = customLockText;
+    }
+    // imp end
 }
 
 /// <summary>

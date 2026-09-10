@@ -3,12 +3,19 @@ using Content.Server.Announcements.Systems;
 using Content.Server.Chat.Systems;
 using Content.Server.GameTicking;
 using Content.Server.GameTicking.Rules.Components;
+using Content.Server.NukeOps;
 using Content.Server.Shuttles.Components;
+using Content.Server.Shuttles.Events;
 using Content.Server.Shuttles.Systems;
+using Content.Server.Stack;
+using Content.Server.Station.Systems;
 using Content.Shared._Impstation.Shuttles.Components;
 using Content.Shared._Impstation.Shuttles.Events;
+using Content.Shared.Interaction;
+using Content.Shared.Lock;
 using Content.Shared.Pinpointer;
-using Content.Shared.Station;
+using Content.Shared.Stacks;
+using Robust.Server.GameObjects;
 using Robust.Shared.Map;
 using Robust.Shared.Player;
 using Robust.Shared.Prototypes;
@@ -22,10 +29,13 @@ namespace Content.Server._Impstation.Shuttles.Systems
         [Dependency] private readonly AnnouncerSystem _announcer = default!;
         [Dependency] private readonly ChatSystem _chat = default!;
         [Dependency] private readonly GameTicker _gameTicker = default!;
+        [Dependency] private readonly LockSystem _lockSystem = default!;
         [Dependency] private readonly IGameTiming _timing = default!;
-        [Dependency] private readonly SharedMapSystem _mapSystem = default!;
+        [Dependency] private readonly MapSystem _mapSystem = default!;
         [Dependency] private readonly ShuttleSystem _shuttle = default!;
-        [Dependency] private readonly SharedStationSystem _station = default!;
+        [Dependency] private readonly StackSystem _stackSystem = default!;
+        [Dependency] private readonly StationSystem _station = default!;
+        private static readonly ProtoId<StackPrototype> TelecrystalStackPrototype = "Telecrystal";
         private static readonly ProtoId<AlertLevelPrototype> RedAlert = "Red";
         private static readonly string CommandAnnouncementId = "commandReport";
 
@@ -33,39 +43,13 @@ namespace Content.Server._Impstation.Shuttles.Systems
         {
             base.Initialize();
 
-            SubscribeLocalEvent<AssaultPodConsoleComponent, MapInitEvent>(OnMapInit);
+            SubscribeLocalEvent<AssaultPodConsoleComponent, AfterInteractUsingEvent>(OnAfterInteractUsing);
+            SubscribeLocalEvent<AssaultPodConsoleComponent, WarDeclaredEvent>(OnWarDeclared);
+            SubscribeLocalEvent<AssaultPodConsoleComponent, ComponentShutdown>(OnComponentShutdown);
             Subs.BuiEvents<AssaultPodConsoleComponent>(StationMapUiKey.Key, subs =>
             {
                 subs.Event<ClickCoordMessage>(OnClickCoord);
             });
-        }
-
-        private void OnMapInit(Entity<AssaultPodConsoleComponent> ent, ref MapInitEvent args)
-        {
-            var shuttleUid = Transform(ent).GridUid;
-
-            if (!TryComp(shuttleUid, out ShuttleComponent? shuttleComp))
-                return;
-
-            shuttleComp.Enabled = false;
-        }
-
-        private void OnClickCoord(Entity<AssaultPodConsoleComponent> ent, ref ClickCoordMessage args)
-        {
-            if (ent.Comp.Activated)
-                return;
-
-            ent.Comp.Activated = true;
-            ent.Comp.LaunchTime = _timing.CurTime + ent.Comp.TimeTillLaunch;
-            ent.Comp.TravelCoordinates = args.Coordinates;
-
-            _chat.DispatchFilteredAnnouncement(
-                Filter.BroadcastMap(Transform(ent).MapID),
-                Loc.GetString(ent.Comp.BeginDepartureAnouncement),
-                sender: Loc.GetString(ent.Comp.BeginDepartureAnouncementSender),
-                announcementSound: ent.Comp.BeginDepartureAnnouncementSound,
-                colorOverride: Color.DarkRed
-            );
         }
 
         public override void Update(float frameTime)
@@ -75,14 +59,15 @@ namespace Content.Server._Impstation.Shuttles.Systems
             var query = EntityQueryEnumerator<AssaultPodConsoleComponent>();
             while (query.MoveNext(out var uid, out var comp))
             {
-                if (!comp.Activated)
+                if (comp.LaunchTime == null || comp.Launched || comp.WarDeclared)
                     continue;
 
-                if (comp.LaunchTime == null || comp.LaunchTime > _timing.CurTime)
+                if (comp.LaunchTime > _timing.CurTime)
                     continue;
+
+                comp.Launched = true;
 
                 var shuttleUid = Transform(uid).GridUid;
-
                 if (!TryComp(shuttleUid, out ShuttleComponent? shuttleComp))
                     continue;
 
@@ -96,37 +81,116 @@ namespace Content.Server._Impstation.Shuttles.Systems
                     Angle.Zero,
                     hyperspaceTime: comp.TravelTime,
                     travelSound: comp.TravelSound,
-                    // arrivalSound: comp.testArrivalSound,
+                    arrivalSound: comp.ArrivalSound,
                     destroyFloor: true);
 
-                SendDepartureAnnouncement(comp);
-
-                comp.LaunchTime = null; // have it only activate once
-            }
-        }
-
-        private void SendDepartureAnnouncement(AssaultPodConsoleComponent comp)
-        {
-            foreach (var rule in _gameTicker.GetActiveGameRules())
-            {
-                if (!TryComp<NukeopsRuleComponent>(rule, out var nukeopsRule) || nukeopsRule.TargetStation == null)
+                if (!TryFindNukeOpsRule(out var nukeopsRule)
+                    || nukeopsRule?.TargetStation is not { } targetStation)
                     continue;
 
-                _alertLevelSystem.SetLevel(nukeopsRule.TargetStation.Value, RedAlert, true, true, true);
-
-                var stationGrid = _station.GetLargestGrid((nukeopsRule.TargetStation.Value, null));
+                var stationGrid = _station.GetLargestGrid((targetStation, null));
                 if (stationGrid == null)
                     continue;
 
+                _alertLevelSystem.SetLevel(targetStation, RedAlert, true, true, true);
                 _announcer.SendAnnouncement(
                     _announcer.GetAnnouncementId(CommandAnnouncementId),
                     Filter.BroadcastGrid(stationGrid.Value),
                     Loc.GetString(comp.DepartureStationAnouncement),
-                    Loc.GetString(comp.DepartureStationAnouncementSender),
-                    station: nukeopsRule.TargetStation.Value,
+                    Loc.GetString(comp.StationAnouncementSender),
+                    station: targetStation,
                     colorOverride: Color.Cyan
                 );
             }
+        }
+
+        private void OnAfterInteractUsing(Entity<AssaultPodConsoleComponent> ent, ref AfterInteractUsingEvent args)
+        {
+            if (ent.Comp.CostPayed || ent.Comp.WarDeclared)
+                return;
+
+            if (!TryComp<StackComponent>(args.Used, out var stack) || stack.StackTypeId != TelecrystalStackPrototype)
+                return;
+
+            for (var i = 0; i < stack.Count; i++)
+            {
+                if (ent.Comp.InsertedTelecrystals >= ent.Comp.Cost)
+                {
+                    ent.Comp.CostPayed = true;
+                    _stackSystem.ReduceCount((args.Used, stack), i);
+
+                    var shuttleUid = Transform(ent).GridUid;
+                    if (shuttleUid is { } shuttle)
+                    {
+                        var ev = new ConsoleFTLAttemptEvent(shuttle, false, string.Empty);
+                        RaiseLocalEvent(shuttle, ref ev, true);
+                    }
+
+                    _lockSystem.Unlock(ent, args.User);
+                    break;
+                }
+
+                ent.Comp.InsertedTelecrystals++;
+            }
+
+            _lockSystem.SetCustomLockText(ent, Loc.GetString(ent.Comp.LockExamineText, ("telecrystals", ent.Comp.InsertedTelecrystals)));
+        }
+
+        private void OnClickCoord(Entity<AssaultPodConsoleComponent> ent, ref ClickCoordMessage args)
+        {
+            if (ent.Comp.Launched || ent.Comp.LaunchTime != null)
+                return;
+
+            ent.Comp.LaunchTime = _timing.CurTime + ent.Comp.TimeTillLaunch;
+            ent.Comp.TravelCoordinates = args.Coordinates;
+
+            _chat.DispatchFilteredAnnouncement(
+                Filter.BroadcastMap(Transform(ent).MapID),
+                Loc.GetString(ent.Comp.BeginDepartureAnouncement),
+                sender: Loc.GetString(ent.Comp.NukieAnnouncementSender),
+                announcementSound: ent.Comp.NukieAnnouncementSound,
+                colorOverride: Color.DarkRed
+            );
+        }
+
+        private void OnWarDeclared(Entity<AssaultPodConsoleComponent> ent, ref WarDeclaredEvent args)
+        {
+            ent.Comp.WarDeclared = true;
+
+            if (ent.Comp.InsertedTelecrystals != 0)
+                _chat.DispatchFilteredAnnouncement(
+                    Filter.BroadcastMap(Transform(ent).MapID),
+                    Loc.GetString(ent.Comp.WarDeclaredFailedDepartureAnouncement),
+                    sender: Loc.GetString(ent.Comp.NukieAnnouncementSender),
+                    announcementSound: ent.Comp.NukieAnnouncementSound,
+                    colorOverride: Color.DarkRed
+                );
+            else
+                return;
+
+            _stackSystem.SpawnNextToOrDrop(ent.Comp.InsertedTelecrystals, TelecrystalStackPrototype, ent);
+            ent.Comp.InsertedTelecrystals = 0; // just in case
+        }
+
+        private void OnComponentShutdown(Entity<AssaultPodConsoleComponent> ent, ref ComponentShutdown args)
+        {
+            if (ent.Comp.Launched)
+                return;
+
+            _stackSystem.SpawnNextToOrDrop(ent.Comp.InsertedTelecrystals, TelecrystalStackPrototype, ent);
+            ent.Comp.InsertedTelecrystals = 0; // just in case
+        }
+
+        private bool TryFindNukeOpsRule(out NukeopsRuleComponent? nukeopsRule)
+        {
+            foreach (var rule in _gameTicker.GetActiveGameRules<NukeopsRuleComponent>())
+            {
+                nukeopsRule = rule;
+                return true;
+            }
+
+            nukeopsRule = null;
+            return false;
         }
     }
 }

@@ -1694,7 +1694,10 @@ entities:
       pos: 16.5,-7.5
       parent: 104
     - type: GridFill
-      addComponents: []
+      addComponents: 
+      - type: NukeOpsDropPod
+      - type: PreventFTLComponent
+      - type: PreventPilotComponent
       path: /Maps/_Impstation/Shuttles/nukiedroppod.yml
 - proto: AirlockSyndicateNukeopGlassLocked
   entities:

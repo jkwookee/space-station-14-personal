@@ -102,7 +102,7 @@
   parent: [ BaseComputer, Tier3Contraband ]
   id: ComputerAssaultPodSyndie
   name: syndicate assault pod console
-  description: Used to designate a location for the assault pod to land at. Requires 40 TC inserted first. 
+  description: Used to designate a location for the assault pod to land at and begin FTL sequence.
   components:
   - type: AssaultPodConsole
   - type: NukeopsStationMap
@@ -116,19 +116,14 @@
     interfaces:
         enum.StationMapUiKey.Key:
           type: StationMapBoundUserInterface
-        enum.WiresUiKey.Key:
-          type: WiresBoundUserInterface
-  - type: ContainerContainer
-    containers:
-      TC: !type:Container
   - type: Lock
+    showLockVerbs: false
+    lockOnClick: false
+    unlockOnClick: false
+    useAccess: false
+    breakOnAccessBreaker: false
+    customLockText: console flashes a message that 40 telecrystals are needed and
   - type: UIRequiresLock
-    userInterfaceKeys:
-      - enum.StationMapUiKey.Key
-  - type: TriggerOnGotInsertedIntoContainer
-    containerId: TC
-  - type: LockOnTrigger
-    keysIn: [ unlock ]
   - type: Sprite
     layers:
     - map: ["computerLayerBody"]
@@ -152,60 +147,4 @@
     energy: 4.0
     color: "#c94242"
   - type: Anchorable
-    flags: None
-
-- type: entity
-  parent: [ BaseComputer, Tier3Contraband ]
-  id: ComputerAssaultPodSyndietest
-  name: syndicate test assault pod console
-  description: Used to designate a location for the assault pod to land at. Requires 40 TC inserted first. 
-  components:
-  - type: AssaultPodConsole
-    timeTillLaunch: 3
-  - type: StationMap
-    showLocation: false
-    initializeWithStation: true
-    sendClickCoords: true
-  - type: ActivatableUI
-    key: enum.StationMapUiKey.Key
-  - type: UserInterface
-    interfaces:
-        enum.StationMapUiKey.Key:
-          type: StationMapBoundUserInterface
-        enum.WiresUiKey.Key:
-          type: WiresBoundUserInterface
-  - type: ContainerContainer
-    containers:
-      TC: !type:Container
-  - type: Lock
-  - type: UIRequiresLock
-    userInterfaceKeys:
-      - enum.StationMapUiKey.Key
-  - type: TriggerOnGotInsertedIntoContainer
-    containerId: TC
-  - type: LockOnTrigger
-    keysIn: [ unlock ]
-  - type: Sprite
-    layers:
-    - map: ["computerLayerBody"]
-      state: computer
-      sprite: _Impstation/Structures/Machines/computers.rsi # imp
-    - map: ["computerLayerKeyboard"]
-      state: generic_keyboard
-      sprite: _Impstation/Structures/Machines/computers.rsi # imp
-    - map: ["computerLayerScreen"]
-      state: syndishuttle
-    - map: ["computerLayerKeys"]
-      state: syndie_key
-    - map: [ "enum.WiresVisualLayers.MaintenancePanel" ]
-      state: generic_panel_open
-      sprite: _Impstation/Structures/Machines/computers.rsi # imp
-  - type: Tag
-    tags:
-      - Syndicate
-  - type: PointLight
-    radius: 1.5
-    energy: 4.0
-    color: "#c94242"
-  - type: Anchorable
-    flags: None
+    flags: Anchorable
