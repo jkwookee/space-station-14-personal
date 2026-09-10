@@ -1,11 +1,4 @@
 ﻿Entries:
-- author: DVDPlayerOfDiscordFame
-  changes:
-  - message: Pacifists must not be allowed to shoot Cool Guns!
-    type: Fix
-  id: 2441
-  time: '2025-11-20T10:25:45.0000000+00:00'
-  url: https://github.com/impstation/imp-station-14/pull/3740
 - author: honeyed-lemons
   changes:
   - message: Heretics can access the store after being cloned.
@@ -4069,3 +4062,12 @@
   id: 2940
   time: '2026-09-10T11:07:25.0000000+00:00'
   url: https://github.com/impstation/imp-station-14/pull/4620
+- author: coyragon96
+  changes:
+  - message: Removed two of the visiting chef shuttles.
+    type: Remove
+  - message: Updated an existing chef shuttle and added a new one!
+    type: Tweak
+  id: 2941
+  time: '2026-09-10T11:12:00.0000000+00:00'
+  url: https://github.com/impstation/imp-station-14/pull/4574
