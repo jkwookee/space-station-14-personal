@@ -1,11 +1,4 @@
 ﻿Entries:
-- author: honeyed-lemons
-  changes:
-  - message: Heretics can access the store after being cloned.
-    type: Fix
-  id: 2442
-  time: '2025-11-20T10:38:21.0000000+00:00'
-  url: https://github.com/impstation/imp-station-14/pull/3742
 - author: TheGrimbeeper
   changes:
   - message: reduced toy RPG stun power by 50%. The nerfing will continue until morale
@@ -4071,3 +4064,10 @@
   id: 2941
   time: '2026-09-10T11:12:00.0000000+00:00'
   url: https://github.com/impstation/imp-station-14/pull/4574
+- author: Yental
+  changes:
+  - message: Omega has been refurbished!
+    type: Add
+  id: 2942
+  time: '2026-09-10T19:35:25.0000000+00:00'
+  url: https://github.com/impstation/imp-station-14/pull/4582
