@@ -112,12 +112,12 @@ namespace Content.Server._Impstation.Shuttles.Systems
             if (!TryComp<StackComponent>(args.Used, out var stack) || stack.StackTypeId != TelecrystalStackPrototype)
                 return;
 
-            for (var i = 0; i < stack.Count; i++)
+            int inserted;
+            for (inserted = 0; inserted < stack.Count; inserted++)
             {
                 if (ent.Comp.InsertedTelecrystals >= ent.Comp.Cost)
                 {
                     ent.Comp.CostPayed = true;
-                    _stackSystem.ReduceCount((args.Used, stack), i);
 
                     var shuttleUid = Transform(ent).GridUid;
                     if (shuttleUid is { } shuttle)
@@ -133,7 +133,8 @@ namespace Content.Server._Impstation.Shuttles.Systems
                 ent.Comp.InsertedTelecrystals++;
             }
 
-            _lockSystem.SetCustomLockText(ent, Loc.GetString(ent.Comp.LockExamineText, ("telecrystals", ent.Comp.InsertedTelecrystals)));
+            _stackSystem.ReduceCount((args.Used, stack), inserted);
+            _lockSystem.SetCustomLockText(ent, Loc.GetString(ent.Comp.LockExamineText, ("telecrystals", ent.Comp.Cost - ent.Comp.InsertedTelecrystals)));
         }
 
         private void OnClickCoord(Entity<AssaultPodConsoleComponent> ent, ref ClickCoordMessage args)
