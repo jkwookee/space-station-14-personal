@@ -11,6 +11,7 @@ using Content.Server.Stack;
 using Content.Server.Station.Systems;
 using Content.Shared._Impstation.Shuttles.Components;
 using Content.Shared._Impstation.Shuttles.Events;
+using Content.Shared.Destructible;
 using Content.Shared.Interaction;
 using Content.Shared.Lock;
 using Content.Shared.Pinpointer;
@@ -36,7 +37,6 @@ namespace Content.Server._Impstation.Shuttles.Systems
         [Dependency] private readonly StackSystem _stackSystem = default!;
         [Dependency] private readonly StationSystem _station = default!;
         private static readonly ProtoId<StackPrototype> TelecrystalStackPrototype = "Telecrystal";
-        private static readonly ProtoId<AlertLevelPrototype> RedAlert = "red";
         private static readonly string CommandAnnouncementId = "commandReport";
 
         public override void Initialize()
@@ -45,7 +45,7 @@ namespace Content.Server._Impstation.Shuttles.Systems
 
             SubscribeLocalEvent<AssaultPodConsoleComponent, InteractUsingEvent>(OnInteractUsing);
             SubscribeLocalEvent<AssaultPodConsoleComponent, WarDeclaredEvent>(OnWarDeclared);
-            SubscribeLocalEvent<AssaultPodConsoleComponent, ComponentShutdown>(OnComponentShutdown);
+            SubscribeLocalEvent<AssaultPodConsoleComponent, DestructionEventArgs>(OnDestruction);
             Subs.BuiEvents<AssaultPodConsoleComponent>(StationMapUiKey.Key, subs =>
             {
                 subs.Event<ClickCoordMessage>(OnClickCoord);
@@ -92,7 +92,7 @@ namespace Content.Server._Impstation.Shuttles.Systems
                 if (stationGrid == null)
                     continue;
 
-                _alertLevelSystem.SetLevel(targetStation, RedAlert, true, true, true);
+                _alertLevelSystem.SetLevel(targetStation, comp.AlertLevel, true, true, true);
                 _announcer.SendAnnouncement(
                     _announcer.GetAnnouncementId(CommandAnnouncementId),
                     Filter.BroadcastMap(Transform(stationGrid.Value).MapID),
@@ -178,7 +178,7 @@ namespace Content.Server._Impstation.Shuttles.Systems
             ent.Comp.InsertedTelecrystals = 0;
         }
 
-        private void OnComponentShutdown(Entity<AssaultPodConsoleComponent> ent, ref ComponentShutdown args)
+        private void OnDestruction(Entity<AssaultPodConsoleComponent> ent, ref DestructionEventArgs args)
         {
             if (ent.Comp.Launched)
                 return;

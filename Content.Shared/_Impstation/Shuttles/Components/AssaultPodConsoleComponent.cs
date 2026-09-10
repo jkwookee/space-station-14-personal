@@ -35,6 +35,9 @@ public sealed partial class AssaultPodConsoleComponent : Component
     public TimeSpan TimeTillLaunch = TimeSpan.FromSeconds(30);
 
     [DataField]
+    public string AlertLevel = "red";
+
+    [DataField]
     public LocId LockExamineText = "assault-pod-lock-examine";
     [DataField]
     public LocId BeginDepartureAnouncement = "assault-pod-announcement-begin-departure";
