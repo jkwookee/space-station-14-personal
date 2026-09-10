@@ -122,7 +122,8 @@
     unlockOnClick: false
     useAccess: false
     breakOnAccessBreaker: false
-    customLockText: console flashes a message that 40 telecrystals are needed and
+    customLockText: console has 40 telecrystals covering the screen and
+    toggleExamineTextOnUnlock: true
   - type: UIRequiresLock
   - type: Sprite
     layers:

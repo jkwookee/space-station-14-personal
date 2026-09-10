@@ -156,6 +156,13 @@ public sealed partial class LockComponent : Component
     /// </summary>
     [DataField]
     public string? CustomLockText;
+
+    /// <summary>
+    /// Imp.
+    /// Toggles the visiblity of examine text on unlock
+    /// </summary>
+    [DataField, AutoNetworkedField]
+    public bool ToggleExamineTextOnUnlock;
 }
 
 /// <summary>

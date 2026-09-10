@@ -230,6 +230,9 @@ public sealed class LockSystem : EntitySystem
 
         _audio.PlayPredicted(lockComp.UnlockSound, uid, user);
 
+        if (lockComp.ToggleExamineTextOnUnlock) // imp
+            lockComp.ShowExamine = !lockComp.ShowExamine; // imp
+
         lockComp.Locked = false;
         _appearanceSystem.SetData(uid, LockVisuals.Locked, false);
         Dirty(uid, lockComp);
