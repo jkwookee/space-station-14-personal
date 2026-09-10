@@ -36,7 +36,7 @@ namespace Content.Server._Impstation.Shuttles.Systems
         [Dependency] private readonly StackSystem _stackSystem = default!;
         [Dependency] private readonly StationSystem _station = default!;
         private static readonly ProtoId<StackPrototype> TelecrystalStackPrototype = "Telecrystal";
-        private static readonly ProtoId<AlertLevelPrototype> RedAlert = "Red";
+        private static readonly ProtoId<AlertLevelPrototype> RedAlert = "red";
         private static readonly string CommandAnnouncementId = "commandReport";
 
         public override void Initialize()
@@ -95,7 +95,7 @@ namespace Content.Server._Impstation.Shuttles.Systems
                 _alertLevelSystem.SetLevel(targetStation, RedAlert, true, true, true);
                 _announcer.SendAnnouncement(
                     _announcer.GetAnnouncementId(CommandAnnouncementId),
-                    Filter.BroadcastGrid(stationGrid.Value),
+                    Filter.BroadcastMap(Transform(stationGrid.Value).MapID),
                     Loc.GetString(comp.DepartureStationAnouncement),
                     Loc.GetString(comp.StationAnouncementSender),
                     station: targetStation,
@@ -169,14 +169,13 @@ namespace Content.Server._Impstation.Shuttles.Systems
                     Filter.BroadcastMap(Transform(ent).MapID),
                     Loc.GetString(ent.Comp.WarDeclaredFailedDepartureAnouncement),
                     sender: Loc.GetString(ent.Comp.NukieAnnouncementSender),
-                    announcementSound: ent.Comp.NukieAnnouncementSound,
                     colorOverride: Color.DarkRed
                 );
             else
                 return;
 
             _stackSystem.SpawnNextToOrDrop(ent.Comp.InsertedTelecrystals, TelecrystalStackPrototype, ent);
-            ent.Comp.InsertedTelecrystals = 0; // just in case
+            ent.Comp.InsertedTelecrystals = 0;
         }
 
         private void OnComponentShutdown(Entity<AssaultPodConsoleComponent> ent, ref ComponentShutdown args)
@@ -185,7 +184,7 @@ namespace Content.Server._Impstation.Shuttles.Systems
                 return;
 
             _stackSystem.SpawnNextToOrDrop(ent.Comp.InsertedTelecrystals, TelecrystalStackPrototype, ent);
-            ent.Comp.InsertedTelecrystals = 0; // just in case
+            ent.Comp.InsertedTelecrystals = 0;
         }
 
         private bool TryFindNukeOpsRule(out NukeopsRuleComponent? nukeopsRule)
