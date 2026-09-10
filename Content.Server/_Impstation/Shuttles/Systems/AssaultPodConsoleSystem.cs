@@ -184,7 +184,6 @@ namespace Content.Server._Impstation.Shuttles.Systems
                 return;
 
             _stackSystem.SpawnNextToOrDrop(ent.Comp.InsertedTelecrystals, TelecrystalStackPrototype, ent);
-            ent.Comp.InsertedTelecrystals = 0;
         }
 
         private bool TryFindNukeOpsRule(out NukeopsRuleComponent? nukeopsRule)
