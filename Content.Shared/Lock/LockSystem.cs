@@ -576,6 +576,7 @@ public sealed class LockSystem : EntitySystem
             return;
 
         lockComp.CustomLockText = customLockText;
+        Dirty(uid, lockComp);
     }
     // imp end
 }
