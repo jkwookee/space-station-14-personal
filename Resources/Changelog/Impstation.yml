@@ -1,12 +1,4 @@
 ﻿Entries:
-- author: TheGrimbeeper
-  changes:
-  - message: reduced toy RPG stun power by 50%. The nerfing will continue until morale
-      improves.
-    type: Tweak
-  id: 2443
-  time: '2025-11-21T06:51:47.0000000+00:00'
-  url: https://github.com/impstation/imp-station-14/pull/3749
 - author: kipdotnet
   changes:
   - message: Allulalo now recieve less speed benefits from Hyperzine, Desoxyephedrine,
@@ -4071,3 +4063,10 @@
   id: 2942
   time: '2026-09-10T19:35:25.0000000+00:00'
   url: https://github.com/impstation/imp-station-14/pull/4582
+- author: meatsmall
+  changes:
+  - message: the artifact point light effect is less harsh now.
+    type: Tweak
+  id: 2943
+  time: '2026-09-11T08:09:43.0000000+00:00'
+  url: https://github.com/impstation/imp-station-14/pull/4625
