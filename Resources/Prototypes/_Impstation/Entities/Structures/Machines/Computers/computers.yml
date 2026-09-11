@@ -122,7 +122,7 @@
     unlockOnClick: false
     useAccess: false
     breakOnAccessBreaker: false
-    customLockText: console has 40 telecrystals covering the screen and
+    customLockText: console has images of 40 telecrystals covering the screen and
     toggleExamineTextOnUnlock: true
   - type: UIRequiresLock
   - type: Sprite

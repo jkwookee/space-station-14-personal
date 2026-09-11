@@ -512,16 +512,11 @@ public sealed partial class ShuttleSystem
 
             mapId = mapCoordinates.MapId;
         }
-        // imp start, entire else if so that when TryFTLProximity is implemented as the default else this still works
+        // imp start, entire else if so that when / if TryFTLProximity is implemented as the default else this still works
         else if (comp.DestroyFloor)
         {
-            var enumerator = xform.ChildEnumerator;
-            while (enumerator.MoveNext(out var child))
-                comp.FTLTravellingEntities.Add(child);
-
             mapId = _transform.GetMapId(target);
             _transform.SetCoordinates(uid, xform, target, rotation: comp.TargetAngle);
-            RemoveTiles(entity);
         }
         // imp end
         // Position ftl
@@ -567,6 +562,18 @@ public sealed partial class ShuttleSystem
                 ? ArrivalsFTLCooldown
                 : FTLCooldown);
         comp.StateTime = StartEndTime.FromCurTime(_gameTiming, cooldown);
+
+        // imp start
+        if (comp.DestroyFloor)
+        {
+            var enumerator = xform.ChildEnumerator;
+            while (enumerator.MoveNext(out var child))
+                comp.FTLTravellingEntities.Add(child);
+
+            RemoveTiles(entity);
+        }
+        // imp end
+
         _console.RefreshShuttleConsoles(uid);
         _mapSystem.SetPaused(mapId, false);
         Smimsh(uid, xform: xform);
@@ -1064,7 +1071,7 @@ public sealed partial class ShuttleSystem
 
     /// <summary>
     /// Imp.
-    /// Removes all tiles that are under the grid upon FTL.
+    /// Removes all tiles that are under the grid upon FTL arrival.
     /// </summary>
     private void RemoveTiles(EntityUid uid, FixturesComponent? manager = null, TransformComponent? xform = null)
     {
