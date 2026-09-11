@@ -11,7 +11,7 @@
 
 - type: entity
   id: BriefcaseSyndieSniperBundleFilled
-  parent: CybersunBriefcase # imp, parent changed from BriefcaseSyndie to CybersunBriefcase
+  parent: BriefcaseSyndie
   suffix: Syndicate, Sniper Bundle
   components:
   - type: Item

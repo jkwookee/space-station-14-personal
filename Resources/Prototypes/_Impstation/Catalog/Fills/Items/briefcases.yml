@@ -42,7 +42,7 @@
 
 - type: entity
   id: BriefcaseSyndieAnacondaBundleFilled
-  parent: CybersunBriefcase
+  parent: BriefcaseSyndie
   suffix: Syndicate, Anaconda Bundle
   components:
   - type: Item
