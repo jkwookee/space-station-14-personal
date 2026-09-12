@@ -1,12 +1,4 @@
 ﻿Entries:
-- author: FlippenPage
-  changes:
-  - message: wow the black utility belt crafting recipe was broken for 9 months! hope
-      someone got FIRED for that blunder.
-    type: Fix
-  id: 2445
-  time: '2025-11-23T08:48:19.0000000+00:00'
-  url: https://github.com/impstation/imp-station-14/pull/3744
 - author: SixValentine
   changes:
   - message: reHash Update
@@ -4065,3 +4057,10 @@
   id: 2944
   time: '2026-09-12T04:52:36.0000000+00:00'
   url: https://github.com/impstation/imp-station-14/pull/4628
+- author: crocodilecarousel
+  changes:
+  - message: Turtle spawner
+    type: Add
+  id: 2945
+  time: '2026-09-12T08:26:32.0000000+00:00'
+  url: https://github.com/impstation/imp-station-14/pull/4630
