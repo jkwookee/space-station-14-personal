@@ -57,7 +57,7 @@
 
 - type: entity
   id: BriefcaseThiefBribingBundleFilled
-  parent: BriefcaseSyndie
+  parent: CybersunBriefcase # imp, parent changed from BriefcaseSyndie to CybersunBriefcase
   suffix: Thief, Spesos
   components:
   - type: EntityTableContainerFill
