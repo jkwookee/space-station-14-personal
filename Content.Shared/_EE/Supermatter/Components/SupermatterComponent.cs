@@ -268,6 +268,9 @@ public sealed partial class SupermatterComponent : Component
     [DataField]
     public float CascadeMessageChance = 120f;
 
+    [DataField]
+    public bool Christmas;
+
     #endregion
 
     #region Timing
@@ -487,7 +490,8 @@ public enum DelamType : int
     Explosion = 0,
     Singulo = 1,
     Tesla = 2,
-    Cascade = 3
+    Christmas = 3,
+    Cascade = 4
 }
 
 [Serializable, NetSerializable]

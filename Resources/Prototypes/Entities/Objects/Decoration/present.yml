@@ -8,6 +8,7 @@
     sprite: _Wizden/Objects/Decoration/present.rsi
     layers:
       - state: present
+  - type: SupermatterImmune # imp
 
 - type: entity
   id: Present

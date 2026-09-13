@@ -32,3 +32,29 @@
         maxRange: 4.5
       spawns:
       - MobAugury
+
+- type: entity
+  id: AnomalyInsaneSanta
+  parent: AnomalySanta
+  suffix: Santa
+  components:
+  - type: EntitySpawnAnomaly
+    entries:
+    - settings:
+        spawnOnPulse: true
+        minAmount: 2
+        maxAmount: 5
+        maxRange: 5
+      spawns:
+      - PresentRandomInsane
+      - PresentRandomUnsafe
+      - PresentRandom
+      - ClothingHeadHatSantahat
+      - FoodCakeChristmasSlice
+    - settings:
+        spawnOnSuperCritical: true
+        minAmount: 10
+        maxAmount: 20
+        maxRange: 6
+      spawns:
+      - PresentRandomInsane

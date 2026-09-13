@@ -368,3 +368,12 @@
       max: 10
     emptyTilesOnly: true
     announcement: station-event-explosive-mine-resurgence-announcement
+
+- type: entity
+  id: SilentFrezonGasLeak
+  parent: BaseStationEventShortDelay
+  components:
+  - type: StationEvent
+  - type: GasLeakRule
+    leakableGases: 
+    - Gas.Frezon

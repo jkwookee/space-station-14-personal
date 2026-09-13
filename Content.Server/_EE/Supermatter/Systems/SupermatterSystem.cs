@@ -45,7 +45,8 @@ using Robust.Shared.Player;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
 using Robust.Shared.Timing;
-using Content.Shared.Mobs; // Imp
+using Content.Shared.Mobs;
+using Content.Server.Holiday; // Imp
 
 namespace Content.Server._EE.Supermatter.Systems;
 
@@ -62,6 +63,7 @@ public sealed partial class SupermatterSystem : EntitySystem
     [Dependency] private readonly GameTicker _gameTicker = default!;
     [Dependency] private readonly GhostSystem _ghost = default!;
     [Dependency] private readonly GravityWellSystem _gravityWell = default!;
+    [Dependency] private readonly HolidaySystem _holiday = default!;
     [Dependency] private readonly IonStormSystem _ionStorm = default!;
     [Dependency] private readonly LightningSystem _lightning = default!;
     [Dependency] private readonly ParacusiaSystem _paracusia = default!;
@@ -124,6 +126,16 @@ public sealed partial class SupermatterSystem : EntitySystem
         // Send the inactive port for any linked devices
         if (HasComp<DeviceLinkSourceComponent>(uid))
             _link.InvokePort(uid, sm.PortInactive);
+
+        if (_holiday.IsCurrentlyHoliday("Christmas"))
+        {
+            sm.Christmas = true;
+            sm.AnomalyPrototype = "AnomalyInsaneSanta";
+            sm.AnomalyNaturalChance = 400f;
+            sm.CollisionResultPrototype = "PresentRandomInsane";
+            // sm.LightColorNormal;
+            // sm.LightColorDelam; todo
+        }
     }
 
     public void OnSupermatterUpdated(EntityUid uid, SupermatterComponent sm, AtmosDeviceUpdateEvent args)

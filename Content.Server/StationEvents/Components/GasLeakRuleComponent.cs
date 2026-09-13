@@ -7,7 +7,8 @@ namespace Content.Server.StationEvents.Components;
 [RegisterComponent, Access(typeof(GasLeakRule))]
 public sealed partial class GasLeakRuleComponent : Component
 {
-    public readonly Gas[] LeakableGases =
+    [DataField] // imp
+    public Gas[] LeakableGases = // imp, removed readonly
     {
         Gas.Ammonia,
         Gas.Plasma,

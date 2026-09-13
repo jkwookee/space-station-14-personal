@@ -168,6 +168,20 @@ public sealed partial class SupermatterSystem
             Math.Min(gasReleased.Temperature, 2500f * sm.HeatModifier));
 
         // Release the waste
+        if (sm.Christmas)
+        {
+            // blue, green, and white of christmas
+            gasReleased.AdjustMoles(
+                Gas.Frezon,
+                Math.Max(energy * sm.HeatModifier / _config.GetCVar(EECCVars.SupermatterPlasmaReleaseModifier), 0f));
+            gasReleased.AdjustMoles(
+                Gas.Tritium,
+                Math.Max(energy * sm.HeatModifier / _config.GetCVar(EECCVars.SupermatterPlasmaReleaseModifier), 0f));
+            gasReleased.AdjustMoles(
+                Gas.WaterVapor,
+                Math.Max((energy + gasReleased.Temperature * sm.HeatModifier - Atmospherics.T0C) / _config.GetCVar(EECCVars.SupermatterOxygenReleaseModifier), 0f));
+        }
+
         gasReleased.AdjustMoles(
             Gas.Plasma,
             Math.Max(energy * sm.HeatModifier / _config.GetCVar(EECCVars.SupermatterPlasmaReleaseModifier), 0f));
@@ -458,6 +472,7 @@ public sealed partial class SupermatterSystem
             var loc = sm.PreferredDelamType switch
             {
                 DelamType.Cascade => "supermatter-delam-cascade",
+                DelamType.Christmas => "supermatter-delam-christmas",
                 DelamType.Singulo => "supermatter-delam-overmass",
                 DelamType.Tesla => "supermatter-delam-tesla",
                 _ => "supermatter-delam-explosion"
@@ -581,6 +596,12 @@ public sealed partial class SupermatterSystem
                 SendSupermatterAnnouncement(uid, sm, message, global);
             }
 
+            if (sm.PreferredDelamType == DelamType.Christmas)
+            {
+                message = Loc.GetString("supermatter-threshold-christmas");
+                SendSupermatterAnnouncement(uid, sm, message, global);
+            }
+
             if (sm.PreferredDelamType == DelamType.Cascade)
             {
                 message = Loc.GetString("supermatter-threshold-cascade");
@@ -641,6 +662,9 @@ public sealed partial class SupermatterSystem
             if (sm.GasComposition.GetMoles(Gas.Frezon) >= 0.4 && sm.GasComposition.GetMoles(Gas.Tritium) >= 0.4 && sm.GasStorage.TotalMoles >= 240)
                 return DelamType.Cascade;
         }
+
+        if (sm.Christmas && !sm.IsShard)
+            return DelamType.Christmas;
 
         if (sm.GasStorage is { })
         {
@@ -759,6 +783,12 @@ public sealed partial class SupermatterSystem
                 _gameTicker.StartGameRule(cascadeGamerule);
                 break;
 
+            case DelamType.Christmas:
+                var gasLeakGamerule = _gameTicker.AddGameRule("SilentFrezonGasLeak");
+                for (var i = 0; i < 15; i++)
+                    _gameTicker.StartGameRule(gasLeakGamerule);
+                break;
+
             case DelamType.Singulo:
                 Spawn(sm.SingularitySpawnPrototype, xform.Coordinates);
                 break;
@@ -805,14 +835,22 @@ public sealed partial class SupermatterSystem
             return;
 
         var psyDiff = -0.007f;
-        var activeCascadeDelam = false;
+        var globalPopup = false;
+        var index = _random.Next(1, 6);
+        var globalPopupMessage = Loc.GetString($"supermatter-cascade-player-message-{index}");
         var lookup = new HashSet<Entity<MobStateComponent>>();
 
         // If actively cascade delaminating then everyone is affected
         if (sm.PreferredDelamType == DelamType.Cascade && sm.Damage > sm.DamageArchived)
         {
             _entityLookup.GetEntitiesOnMap(Transform(uid).MapID, lookup);
-            activeCascadeDelam = true;
+            globalPopup = true;
+        }
+        else if (sm.PreferredDelamType == DelamType.Christmas && sm.Damage > sm.DamageArchived)
+        {
+            _entityLookup.GetEntitiesOnMap(Transform(uid).MapID, lookup);
+            globalPopup = true;
+            globalPopupMessage = Loc.GetString("supermatter-christmas-player-message");
         }
         else
             _entityLookup.GetEntitiesInRange(Transform(uid).Coordinates, 20f, lookup);
@@ -820,19 +858,19 @@ public sealed partial class SupermatterSystem
         foreach (var mob in lookup)
         {
             // Not in line of sight, or is dead
-            if (!activeCascadeDelam &&
+            if (!globalPopup &&
                 (!_examine.InRangeUnOccluded(uid, mob, sm.HallucinationRange) ||
                 mob.Comp.CurrentState == MobState.Dead))
                 continue;
 
             // Someone (generally a psychologist), when looking at the supermatter within hallucination range, makes it easier to manage.
-            if (!activeCascadeDelam && HasComp<SupermatterSootherComponent>(mob))
+            if (!globalPopup && HasComp<SupermatterSootherComponent>(mob))
                 psyDiff = 0.007f;
 
             if (HasComp<SupermatterHallucinationImmuneComponent>(mob)) // Immune to supermatter hallucinations)
                 continue;
 
-            if (!activeCascadeDelam &&
+            if (!globalPopup &&
                 (HasComp<SiliconLawBoundComponent>(mob) ||             // Silicons don't get supermatter hallucinations
                 HasComp<PermanentBlindnessComponent>(mob) ||           // Blind people don't get supermatter hallucinations
                 HasComp<TemporaryBlindnessComponent>(mob)))              // Neither do blinded people
@@ -846,11 +884,8 @@ public sealed partial class SupermatterSystem
             var paracusiaMaxTime = 300f;
             var paracusiaDistance = 7f;
 
-            if (activeCascadeDelam && _random.Prob(1 / sm.CascadeMessageChance))
-            {
-                var index = _random.Next(1, 6);
-                _popup.PopupEntity(Loc.GetString($"supermatter-cascade-player-message-{index}"), mob, mob, PopupType.LargeCaution);
-            }
+            if (globalPopup && _random.Prob(1 / sm.CascadeMessageChance)) // imp TODO: make cascade stuff more generic
+                _popup.PopupEntity(globalPopupMessage, mob, mob, PopupType.LargeCaution);
 
             if (!EnsureComp<ParacusiaComponent>(mob, out var paracusia))
             {
