@@ -33,13 +33,6 @@ public sealed partial class RandomSpawnRuleComponent : Component
     [DataField]
     public bool EmptyTilesOnly;
 
-    /// <summary>
-    /// Imp.
-    /// Announcement to be played when a station event with this rule is added.
-    /// </summary>
-    [DataField]
-    public LocId? Announcement;
-
     // Moffstation - Start - Syndicate dead drop
     /// <summary>
     /// The radio message to send when spawning the entity. The entity is used as the sender of the radio message.
