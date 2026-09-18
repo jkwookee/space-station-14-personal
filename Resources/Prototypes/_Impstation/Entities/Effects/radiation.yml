@@ -1,0 +1,6 @@
+- type: entity
+  parent: RadiationPulse
+  id: LongRadiationPulse
+  components:
+  - type: TimedDespawn
+    lifetime: 7.5
