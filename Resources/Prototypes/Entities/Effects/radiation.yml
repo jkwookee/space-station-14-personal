@@ -13,9 +13,3 @@
       collection:
         RadiationPulse
   - type: RadiationPulse
-  # imp start, for accessibility settings
-  - type: PointLight
-    color: LightGreen
-    radius: 10 # size based on radius of pulse effect
-    energy: 5
-  # imp end

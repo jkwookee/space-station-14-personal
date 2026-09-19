@@ -1,11 +1,8 @@
 - type: entity
   parent: RadiationPulse
   id: SmallRadiationPulse
+  categories: [ HideSpawnMenu ]
   components:
   - type: RadiationSource
     intensity: 15
     slope: 4
-  # imp start, for accessibility settings
-  - type: PointLight
-    radius: 3.75 # size based on radius of pulse effect
-  # imp end
