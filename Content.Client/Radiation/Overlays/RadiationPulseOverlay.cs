@@ -8,6 +8,8 @@ using Robust.Shared.Map;
 using Robust.Shared.Physics;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Timing;
+using Content.Shared._Impstation.CCVar; // imp
+using Robust.Shared.Configuration; // imp
 
 namespace Content.Client.Radiation.Overlays
 {
@@ -18,6 +20,7 @@ namespace Content.Client.Radiation.Overlays
         [Dependency] private readonly IEntityManager _entityManager = default!;
         [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
         [Dependency] private readonly IGameTiming _gameTiming = default!;
+        [Dependency] private readonly IConfigurationManager _configManager = default!; // imp
         private TransformSystem? _transform;
 
         private const float MaxDist = 15.0f;
@@ -53,22 +56,38 @@ namespace Content.Client.Radiation.Overlays
                 if (instance.CurrentMapCoords.MapId != args.MapId)
                     continue;
 
-                // To be clear, this needs to use "inside-viewport" pixels.
-                // In other words, specifically NOT IViewportControl.WorldToScreen (which uses outer coordinates).
-                var tempCoords = viewport.WorldToLocal(instance.CurrentMapCoords.Position);
-                tempCoords.Y = viewport.Size.Y - tempCoords.Y;
-                shd?.SetParameter("renderScale", viewport.RenderScale * viewport.Eye.Scale); // imp, added * viewport.Eye.Scale
-                shd?.SetParameter("positionInput", tempCoords);
-                shd?.SetParameter("range", instance.Range);
+                // imp start
                 var life = (_gameTiming.RealTime - instance.Start).TotalSeconds / instance.Duration;
-                shd?.SetParameter("life", (float)life);
 
-                // There's probably a very good reason not to do this.
-                // Oh well!
-                shd?.SetParameter("SCREEN_TEXTURE", viewport.RenderTarget.Texture);
+                if (_configManager.GetCVar(ImpCCVars.EnableSimplifiedRadiationPulse))
+                {
+                    // mirroring what is done in the shader without all the noise
+                    var nlife = MathF.Pow(MathF.Sin((float)life * MathF.PI), 0.5f);
+                    var currentRadius = instance.Range * nlife;
 
-                worldHandle.UseShader(shd);
-                worldHandle.DrawRect(Box2.CenteredAround(instance.CurrentMapCoords.Position, new Vector2(instance.Range, instance.Range) * 2f), Color.White);
+                    worldHandle.DrawCircle(instance.CurrentMapCoords.Position, currentRadius, Color.LimeGreen.WithAlpha(nlife * 0.9f));
+                    worldHandle.DrawCircle(instance.CurrentMapCoords.Position, currentRadius, Color.LimeGreen.WithAlpha(nlife), false);
+                }
+                else // imp end
+                {
+                    // To be clear, this needs to use "inside-viewport" pixels.
+                    // In other words, specifically NOT IViewportControl.WorldToScreen (which uses outer coordinates).
+                    var tempCoords = viewport.WorldToLocal(instance.CurrentMapCoords.Position);
+                    tempCoords.Y = viewport.Size.Y - tempCoords.Y;
+                    shd?.SetParameter("renderScale", viewport.RenderScale * viewport.Eye.Scale); // imp, added * viewport.Eye.Scale
+                    shd?.SetParameter("positionInput", tempCoords);
+                    shd?.SetParameter("range", instance.Range);
+                    /* imp, moved out of the if else
+                    var life = (_gameTiming.RealTime - instance.Start).TotalSeconds / instance.Duration;
+                    */
+                    shd?.SetParameter("life", (float)life);
+                    // There's probably a very good reason not to do this.
+                    // Oh well!
+                    shd?.SetParameter("SCREEN_TEXTURE", viewport.RenderTarget.Texture);
+
+                    worldHandle.UseShader(shd);
+                    worldHandle.DrawRect(Box2.CenteredAround(instance.CurrentMapCoords.Position, new Vector2(instance.Range, instance.Range) * 2f), Color.White);
+                }
             }
 
             worldHandle.UseShader(null);
