@@ -1,6 +1,7 @@
 - type: entity
   parent: RadiationPulse
-  id: LongRadiationPulse
+  id: SmallRadiationPulse
   components:
-  - type: TimedDespawn
-    lifetime: 7.5
+  - type: RadiationSource
+    intensity: 15
+    slope: 4

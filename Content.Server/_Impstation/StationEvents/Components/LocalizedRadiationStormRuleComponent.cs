@@ -4,17 +4,17 @@ using Robust.Shared.Map;
 
 namespace Content.Server._Impstation.StationEvents.Components;
 
-[RegisterComponent, Access(typeof(RadiationStormRule))]
-public sealed partial class RadiationStormRuleComponent : Component
+[RegisterComponent, Access(typeof(LocalizedRadiationStormRule))]
+public sealed partial class LocalizedRadiationStormRuleComponent : Component
 {
     [DataField, ViewVariables(VVAccess.ReadOnly)]
     public MinMax StormRadius = new(10, 25);
 
     [DataField, ViewVariables(VVAccess.ReadOnly)]
-    public LocId Announcement = "station-event-radiation-storm-announcement";
+    public LocId Announcement = "station-event-localized-radiation-storm-announcement";
 
     [DataField]
-    public MinMax TimeBetweenPulse = new(3, 5);
+    public MinMax TimeBetweenPulse = new(0, 2);
 
     [ViewVariables(VVAccess.ReadOnly)]
     public TimeSpan TimeUntilNextPulse;
