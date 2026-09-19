@@ -8,7 +8,7 @@ namespace Content.Server._Impstation.StationEvents.Components;
 public sealed partial class LocalizedRadiationStormRuleComponent : Component
 {
     [DataField, ViewVariables(VVAccess.ReadOnly)]
-    public MinMax StormRadius = new(10, 25);
+    public MinMax StormRadius = new(10, 15);
 
     [DataField, ViewVariables(VVAccess.ReadOnly)]
     public LocId Announcement = "station-event-localized-radiation-storm-announcement";
