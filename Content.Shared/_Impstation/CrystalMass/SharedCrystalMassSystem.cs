@@ -1,5 +1,4 @@
 using System.Numerics;
-using Content.Server.Spreader;
 using Content.Shared._EE.Supermatter.Components;
 using Content.Shared._Impstation.CrystalMass;
 using Content.Shared.Damage.Components;
@@ -9,7 +8,6 @@ using Content.Shared.Maps;
 using Content.Shared.Mobs.Components;
 using Content.Shared.Spreader;
 using Content.Shared.StepTrigger.Systems;
-using Robust.Server.GameObjects;
 using Robust.Shared.Audio.Systems;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
@@ -19,7 +17,7 @@ using Robust.Shared.Utility;
 
 namespace Content.Server._Impstation.CrystalMass;
 
-public sealed class CrystalMassSystem : SharedCrystalMassSystem
+public abstract class SharedCrystalMassSystem : EntitySystem
 {
     [Dependency] private readonly IMapManager _mapManager = default!;
     [Dependency] private readonly IRobustRandom _robustRandom = default!;
@@ -39,7 +37,6 @@ public sealed class CrystalMassSystem : SharedCrystalMassSystem
         base.Initialize();
 
         SubscribeLocalEvent<CrystalMassComponent, ComponentStartup>(SetupCrystalMass);
-        SubscribeLocalEvent<CrystalMassComponent, SpreadNeighborsEvent>(OnCrystalSpread);
 
         SubscribeLocalEvent<CrystalMassComponent, StepTriggerAttemptEvent>(OnStepTriggerAttempt);
         SubscribeLocalEvent<CrystalMassComponent, StepTriggeredOnEvent>(OnStepTriggered);
@@ -58,7 +55,7 @@ public sealed class CrystalMassSystem : SharedCrystalMassSystem
             // Delay adding pointlight for when multiple are on one tile deleting each other so that it isn't jarring
             if (crystal.IsLight)
             {
-                EnsureComp<PointLightComponent>(uid);
+                EnsureComp<SharedPointLightComponent>(uid);
                 _lights.SetRadius(uid, crystal.LightRadius);
                 _lights.SetEnergy(uid, crystal.LightEnergy);
                 _lights.SetColor(uid, crystal.LightColor);
@@ -77,73 +74,6 @@ public sealed class CrystalMassSystem : SharedCrystalMassSystem
             return;
 
         _appearance.SetData(ent, CrystalMassVisuals.Variant, _robustRandom.Next(1, ent.Comp.SpriteVariants + 1), appearance);
-    }
-
-    private void OnCrystalSpread(Entity<CrystalMassComponent> ent, ref SpreadNeighborsEvent args)
-    {
-        // Only occurs when surrounded by CrystalMass spreaders
-        if (args.Neighbors.Count == 4)
-        {
-            RemCompDeferred<ActiveEdgeSpreaderComponent>(ent);
-            return;
-        }
-
-        if (_robustRandom.Prob(ent.Comp.SpreadChance))
-            return;
-
-        var prototype = MetaData(ent).EntityPrototype?.ID;
-
-        if (prototype == null)
-        {
-            RemCompDeferred<ActiveEdgeSpreaderComponent>(ent);
-            return;
-        }
-
-        if (_robustRandom.Prob(ent.Comp.SecondaryChance))
-            prototype = ent.Comp.SecondarySpawnPrototype;
-
-        var neighbor = _robustRandom.Pick(args.AllNeighbors);
-        var neighborCoords = _map.GridTileToLocal(neighbor.GridUid, neighbor.Grid, neighbor.Position);
-
-        HandleTiles((neighbor.GridUid, neighbor.Grid), neighbor.Position, ent.Comp.MassPlating);
-
-        var neighborUid = Spawn(prototype, neighborCoords);
-        DebugTools.Assert(HasComp<EdgeSpreaderComponent>(neighborUid));
-        DebugTools.Assert(HasComp<ActiveEdgeSpreaderComponent>(neighborUid));
-        DebugTools.Assert(Comp<EdgeSpreaderComponent>(neighborUid).Id == CrystalMassGroup);
-
-        if (_robustRandom.Prob(ent.Comp.SpawningAudioChance))
-            _audio.PlayPvs(ent.Comp.SpawningCrystalSound, Transform(ent).Coordinates);
-
-        args.Updates--;
-    }
-
-    private void HandleTiles(Entity<MapGridComponent> neighborGrid, Vector2i neighborPosition, ProtoId<ContentTileDefinition> neighborTileReplacement)
-    {
-        var mapID = Transform(neighborGrid).MapID;
-        var worldPos = _map.GridTileToWorldPos(neighborGrid, neighborGrid, neighborPosition);
-        var box = Box2.CenteredAround(worldPos, Vector2.One);
-        var circle = new Circle(worldPos, 0.5f);
-
-        var grids = new List<Entity<MapGridComponent>>();
-        _mapManager.FindGridsIntersecting(mapID, box, ref grids);
-
-        // Locating every intersecting grid in the neighbor CrystalMass is about to spread to
-        foreach (var grid in grids)
-        {
-            if (grid.Owner == neighborGrid.Owner)
-                continue;
-
-            // Locating every tile within those intsersecting grids that are within radius
-            foreach (var tile in _map.GetTilesIntersecting(grid.Owner, grid.Comp, circle))
-                _map.SetTile(grid.Owner, grid, tile.GridIndices, Tile.Empty);
-        }
-
-        var seed = _robustRandom.Next();
-        var random = new Random(seed);
-        var variant = _tile.PickVariant((ContentTileDefinition)_tileDefManager[neighborTileReplacement], random);
-
-        _map.SetTile(neighborGrid, neighborPosition, new Tile(_tileDefManager[neighborTileReplacement].TileId, 0, variant));
     }
 
     private void ClearTile(Entity<CrystalMassComponent> ent)
