@@ -31,7 +31,7 @@
     - id: HereticBooksSpawnSmall #imp
     - id: LocalizedRadiationStorm # imp
     - id: BiomagneticPolarization # imp
-    - id: ExplosiveMineResurgence # imp
+    - id: ExplosiveMineResurfacing # imp
     - id: SynthStorm # CD: Unique event for synths
 
 - type: entityTable
