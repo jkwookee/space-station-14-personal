@@ -1,10 +1,9 @@
 using Robust.Shared.Audio;
-using Robust.Shared.GameStates;
 using Robust.Shared.Map;
 
-namespace Content.Shared._Impstation.Shuttles.Components;
+namespace Content.Server._Impstation.Shuttles.Components;
 
-[RegisterComponent, NetworkedComponent]
+[RegisterComponent]
 public sealed partial class AssaultPodConsoleComponent : Component
 {
     [ViewVariables(VVAccess.ReadOnly)]
@@ -17,7 +16,7 @@ public sealed partial class AssaultPodConsoleComponent : Component
     public EntityCoordinates TravelCoordinates;
 
     [ViewVariables]
-    public bool CostPayed;
+    public bool CostPaid;
 
     [ViewVariables]
     public bool Launched;

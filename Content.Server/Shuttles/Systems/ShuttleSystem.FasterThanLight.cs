@@ -750,6 +750,7 @@ public sealed partial class ShuttleSystem
         if (!_turf.IsSpace(tile))
             return;
 
+        // IMP TODO: I think this dosen't work with rad search of other grid
         var throwDirection = childXform.LocalPosition - shuttleBody.LocalCenter;
 
         if (throwDirection == Vector2.Zero)
@@ -1106,7 +1107,7 @@ public sealed partial class ShuttleSystem
             _mapManager.FindGridsIntersecting(xform.MapID, aabb, ref grids);
             foreach (var intersectingGrid in grids)
             {
-                if (intersectingGrid.Owner == xform.GridUid)
+                if (intersectingGrid.Owner == uid)
                     continue;
 
                 foreach (var tile in _mapSystem.GetTilesIntersecting(intersectingGrid.Owner, intersectingGrid.Comp, aabb))
@@ -1133,6 +1134,7 @@ public sealed partial class ShuttleSystem
                     _logger.Add(LogType.Gib, LogImpact.Extreme, $"{ToPrettyString(child):player} got gibbed by the shuttle" +
                                                                 $" {ToPrettyString(uid)} arriving from FTL at {xform.Coordinates:coordinates}");
                     _gibbing.Gib(child);
+                    continue;
                 }
 
                 QueueDel(child);

@@ -1,4 +1,5 @@
 using System.Linq;
+using Content.Server._Impstation.Shuttles.Components;
 using Content.Server.AlertLevel;
 using Content.Server.Chat.Systems;
 using Content.Server.GameTicking;
@@ -10,7 +11,6 @@ using Content.Server.Shuttles.Events;
 using Content.Server.Shuttles.Systems;
 using Content.Server.Stack;
 using Content.Server.Station.Systems;
-using Content.Shared._Impstation.Shuttles.Components;
 using Content.Shared._Impstation.Shuttles.Events;
 using Content.Shared.Destructible;
 using Content.Shared.Interaction;
@@ -110,37 +110,32 @@ namespace Content.Server._Impstation.Shuttles.Systems
             if (args.Handled)
                 return;
 
-            if (ent.Comp.CostPayed || ent.Comp.WarDeclared)
+            if (ent.Comp.CostPaid || ent.Comp.WarDeclared)
                 return;
 
             if (!TryComp<StackComponent>(args.Used, out var stack) || stack.StackTypeId != TelecrystalStackPrototype)
                 return;
 
-            var inserted = 0;
-            while (inserted < stack.Count)
-            {
-                inserted++;
-                ent.Comp.InsertedTelecrystals++;
+            var needed = ent.Comp.Cost - ent.Comp.InsertedTelecrystals;
+            var inserted = Math.Min(needed, stack.Count);
 
-                if (ent.Comp.InsertedTelecrystals >= ent.Comp.Cost)
-                {
-                    ent.Comp.CostPayed = true;
-
-                    var shuttleUid = Transform(ent).GridUid;
-                    if (shuttleUid is { } shuttle)
-                    {
-                        // prevent triggering warops
-                        var ev = new ConsoleFTLAttemptEvent(shuttle, false, string.Empty);
-                        RaiseLocalEvent(shuttle, ref ev, true);
-                    }
-
-                    _lockSystem.Unlock(ent, args.User);
-                    break;
-                }
-            }
-
+            ent.Comp.InsertedTelecrystals += inserted;
             _stackSystem.ReduceCount((args.Used, stack), inserted);
             _lockSystem.SetCustomLockText(ent, Loc.GetString(ent.Comp.LockExamineText, ("telecrystals", ent.Comp.Cost - ent.Comp.InsertedTelecrystals)));
+
+            if (ent.Comp.InsertedTelecrystals >= ent.Comp.Cost)
+            {
+                ent.Comp.CostPaid = true;
+                _lockSystem.Unlock(ent, args.User);
+
+                var shuttleUid = Transform(ent).GridUid;
+                if (shuttleUid is { } shuttle)
+                {
+                    // prevent triggering warops
+                    var ev = new ConsoleFTLAttemptEvent(shuttle, false, string.Empty);
+                    RaiseLocalEvent(shuttle, ref ev, true);
+                }
+            }
 
             args.Handled = true;
         }
@@ -186,7 +181,7 @@ namespace Content.Server._Impstation.Shuttles.Systems
 
         private void OnDestruction(Entity<AssaultPodConsoleComponent> ent, ref DestructionEventArgs args)
         {
-            if (ent.Comp.Launched)
+            if (ent.Comp.Launched || ent.Comp.InsertedTelecrystals == 0)
                 return;
 
             _stackSystem.SpawnNextToOrDrop(ent.Comp.InsertedTelecrystals, TelecrystalStackPrototype, ent);
@@ -197,20 +192,20 @@ namespace Content.Server._Impstation.Shuttles.Systems
             var query = EntityQueryEnumerator<AssaultPodConsoleComponent>();
             while (query.MoveNext(out var uid, out var comp))
             {
-                if (comp.CostPayed)
+                if (comp.CostPaid)
                     continue;
 
                 comp.WarDeclared = true;
 
-                if (comp.InsertedTelecrystals != 0)
-                    _chat.DispatchFilteredAnnouncement(
-                        Filter.BroadcastMap(Transform(uid).MapID),
-                        Loc.GetString(comp.WarDeclaredFailedDepartureAnnouncement),
-                        sender: Loc.GetString(comp.NukieAnnouncementSender),
-                        colorOverride: Color.DarkRed
-                    );
-                else
-                    return;
+                if (comp.InsertedTelecrystals == 0)
+                    continue;
+
+                _chat.DispatchFilteredAnnouncement(
+                    Filter.BroadcastMap(Transform(uid).MapID),
+                    Loc.GetString(comp.WarDeclaredFailedDepartureAnnouncement),
+                    sender: Loc.GetString(comp.NukieAnnouncementSender),
+                    colorOverride: Color.DarkRed
+                );
 
                 _stackSystem.SpawnNextToOrDrop(comp.InsertedTelecrystals, TelecrystalStackPrototype, uid);
                 comp.InsertedTelecrystals = 0;
