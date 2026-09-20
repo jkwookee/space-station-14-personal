@@ -6,7 +6,7 @@ namespace Content.Server._Impstation.GameTicking.Rules;
 
 
 /// <summary>
-///     Gamerule that stars & ends the resonance cascade event
+///     Gamerule that starts & ends the resonance cascade event
 /// </summary>
 [RegisterComponent, Access(typeof(CascadeRuleSystem))]
 public sealed partial class CascadeRuleComponent : Component
@@ -24,7 +24,7 @@ public sealed partial class CascadeRuleComponent : Component
     public TimeSpan DurationForInitialAnnouncements = TimeSpan.FromSeconds(10);
 
     /// <summary>
-    /// Time until the initial announcements are triggered
+    /// Timestamp when the initial announcements are triggered
     /// </summary>
     [ViewVariables(VVAccess.ReadOnly)]
     public TimeSpan TimeUntilInitialAnnouncements;
@@ -45,7 +45,7 @@ public sealed partial class CascadeRuleComponent : Component
     /// Amount of singularities to spawn once the round ends
     /// </summary>
     [DataField]
-    public MinMax MinMaxSinglarity = new(2, 4);
+    public MinMax MinMaxSingularity = new(2, 4);
 
     /// <summary>
     /// Amount of crystal mass to spawn throughout the station

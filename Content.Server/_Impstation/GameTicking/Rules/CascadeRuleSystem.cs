@@ -7,7 +7,6 @@ using Content.Server.RoundEnd;
 using Content.Shared.GameTicking.Components;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
-using Robust.Shared.Random;
 using Robust.Shared.Player;
 
 namespace Content.Server._Impstation.GameTicking.Rules;
@@ -17,14 +16,14 @@ namespace Content.Server._Impstation.GameTicking.Rules;
 /// </summary>
 public sealed class CascadeRuleSystem : GameRuleSystem<CascadeRuleComponent>
 {
-    [Dependency] private readonly IRobustRandom _robustRandom = default!;
     [Dependency] private readonly ITileDefinitionManager _tileDefManager = default!;
     [Dependency] private readonly AlertLevelSystem _alertLevelSystem = default!;
     [Dependency] private readonly AnnouncerSystem _announcer = default!;
     [Dependency] private readonly SharedMapSystem _map = default!;
     [Dependency] private readonly RoundEndSystem _roundEndSystem = default!;
-    private static readonly string CommandAnnouncementId = "commandReport";
-    private static readonly string ShuttlennouncementId = "ShuttleRecalled";
+
+    private const string CommandAnnouncementId = "commandReport";
+    private const string ShuttleAnnouncementId = "ShuttleRecalled";
 
     public override void Initialize()
     {
@@ -49,7 +48,7 @@ public sealed class CascadeRuleSystem : GameRuleSystem<CascadeRuleComponent>
             if (sm.PreferredDelamType == DelamType.Cascade && sm.DelamEndTime <= Timing.CurTime)
             {
                 SpawnSupermatterCrystalMass(supermatterUid, comp, tile);
-                EntityManager.QueueDeleteEntity(supermatterUid);
+                QueueDel(supermatterUid);
                 break;
             }
         }
@@ -80,9 +79,9 @@ public sealed class CascadeRuleSystem : GameRuleSystem<CascadeRuleComponent>
         {
             if (_roundEndSystem.IsRoundEndRequested())
             {
-                _roundEndSystem.CancelRoundEndCountdown(uid, true);
+                _roundEndSystem.CancelRoundEndCountdown(uid, forceRecall: true, checkAnnouncement: false);
                 _announcer.SendAnnouncementMessage(
-                    _announcer.GetAnnouncementId(ShuttlennouncementId),
+                    _announcer.GetAnnouncementId(ShuttleAnnouncementId),
                     "emergancy-shuttle-cascade-enroute",
                     Loc.GetString("emergancy-shuttle-announcement-sender"),
                     Color.Yellow
@@ -111,7 +110,7 @@ public sealed class CascadeRuleSystem : GameRuleSystem<CascadeRuleComponent>
         {
             _roundEndSystem.EndRound();
 
-            var count = comp.MinMaxSinglarity.Next(_robustRandom);
+            var count = comp.MinMaxSingularity.Next(RobustRandom);
             for (var i = 0; i < count; i++)
                 if (TryFindRandomTile(out _, out _, out _, out var coords))
                     Spawn(comp.SingularityPrototype, coords);
@@ -123,13 +122,10 @@ public sealed class CascadeRuleSystem : GameRuleSystem<CascadeRuleComponent>
     private void OnShuttleCallAttempt(ref CommunicationConsoleCallShuttleAttemptEvent ev)
     {
         var query = QueryActiveRules();
-        while (query.MoveNext(out _, out _, out var cascadeRule, out _))
+        if (query.MoveNext(out _, out _, out _))
         {
-            if (cascadeRule != null)
-            {
-                ev.Cancelled = true;
-                ev.Reason = Loc.GetString("emergancy-shuttle-cascade-call-unavailable");
-            }
+            ev.Cancelled = true;
+            ev.Reason = Loc.GetString("emergancy-shuttle-cascade-call-unavailable");
         }
     }
 
@@ -147,13 +143,13 @@ public sealed class CascadeRuleSystem : GameRuleSystem<CascadeRuleComponent>
 
     private void SpawnRandomCrystalMass(CascadeRuleComponent comp, Tile tile)
     {
-        var count = comp.MinMaxCrystalMassSpawn.Next(_robustRandom);
+        var count = comp.MinMaxCrystalMassSpawn.Next(RobustRandom);
         for (var i = 0; i < count; i++)
         {
             if (TryFindRandomTile(out _, out _, out var targetGrid, out var coords))
             {
                 if (!TryComp<MapGridComponent>(targetGrid, out var mapGrid))
-                    break;
+                    continue;
 
                 _map.SetTile(targetGrid, mapGrid, coords, tile);
                 Spawn(comp.CrystalBulbPrototype, coords);

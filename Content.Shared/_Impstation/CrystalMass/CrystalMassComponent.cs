@@ -1,15 +1,27 @@
 using Content.Shared.Maps;
 using Robust.Shared.Audio;
+using Robust.Shared.GameStates;
 using Robust.Shared.Prototypes;
 
-namespace Content.Server._Impstation.CrystalMass;
+namespace Content.Shared._Impstation.CrystalMass;
 
 /// <summary>
-/// Handles spreading of crystal mass
+/// Handles spreading and visuals of crystal mass
 /// </summary>
-[RegisterComponent]
+[RegisterComponent, NetworkedComponent]
 public sealed partial class CrystalMassComponent : Component
 {
+    /// <summary>
+    /// Sprite layer to apply visuals to.
+    /// </summary>
+    [DataField]
+    public int Layer = 0;
+
+    /// <summary>
+    /// If the crystal mass should clear entities on its tile upon initialization.
+    /// </summary>
+    [DataField]
+    public bool ClearTileOnStartup;
     /// <summary>
     /// Chance for it to not spread
     /// </summary>

@@ -1,19 +1,30 @@
 using Content.Shared._Impstation.CrystalMass;
 using Robust.Client.GameObjects;
 
-namespace Content.Server._Impstation.CrystalMass;
+namespace Content.Client._Impstation.CrystalMass;
 
 public sealed class CrystalMassSystem : SharedCrystalMassSystem
 {
-    protected override void OnAppearanceChange(EntityUid uid, CrystalMassComponent component, ref AppearanceChangeEvent args)
+    [Dependency] private readonly SharedAppearanceSystem _appearance = default!;
+    [Dependency] private readonly SpriteSystem _sprite = default!;
+
+    public override void Initialize()
+    {
+        base.Initialize();
+
+        SubscribeLocalEvent<CrystalMassComponent, AppearanceChangeEvent>(OnAppearanceChange);
+    }
+
+    private void OnAppearanceChange(Entity<CrystalMassComponent> ent, ref AppearanceChangeEvent args)
     {
         if (args.Sprite == null)
             return;
-        if (_appearance.TryGetData<int>(uid, CrystalMassVisuals.Variant, out var var, args.Component))
-        {
-            var index = SpriteSystem.LayerMapReserve((uid, args.Sprite), $"{component.Layer}");
-            SpriteSystem.LayerSetRsiState((uid, args.Sprite), index, $"crystal_cascade_{var}");
-            args.Sprite.LayerSetShader(index, "unshaded");
-        }
+
+        if (!_appearance.TryGetData<int>(ent, CrystalMassVisuals.Variant, out var variant, args.Component))
+            return;
+
+        var index = _sprite.LayerMapReserve((ent.Owner, args.Sprite), $"{ent.Comp.Layer}");
+        _sprite.LayerSetRsiState((ent.Owner, args.Sprite), index, $"crystal_cascade_{variant}");
+        args.Sprite.LayerSetShader(index, "unshaded");
     }
 }

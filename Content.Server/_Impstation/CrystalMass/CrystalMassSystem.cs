@@ -9,7 +9,6 @@ using Content.Shared.Maps;
 using Content.Shared.Mobs.Components;
 using Content.Shared.Spreader;
 using Content.Shared.StepTrigger.Systems;
-using Robust.Server.GameObjects;
 using Robust.Shared.Audio.Systems;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
@@ -38,37 +37,28 @@ public sealed class CrystalMassSystem : SharedCrystalMassSystem
     {
         base.Initialize();
 
-        SubscribeLocalEvent<CrystalMassComponent, ComponentStartup>(SetupCrystalMass);
+        SubscribeLocalEvent<CrystalMassComponent, ComponentStartup>(OnStartup);
         SubscribeLocalEvent<CrystalMassComponent, SpreadNeighborsEvent>(OnCrystalSpread);
-
-        SubscribeLocalEvent<CrystalMassComponent, StepTriggerAttemptEvent>(OnStepTriggerAttempt);
         SubscribeLocalEvent<CrystalMassComponent, StepTriggeredOnEvent>(OnStepTriggered);
     }
 
-    public override void Update(float frameTime)
+    private void OnStartup(Entity<CrystalMassComponent> ent, ref ComponentStartup args)
     {
-        base.Update(frameTime);
+        SetupCrystalMass(ent);
 
-        var query = EntityQueryEnumerator<ActiveTileClearCrystalMassComponent, CrystalMassComponent>();
-        while (query.MoveNext(out var uid, out _, out var crystal))
+        if (ent.Comp.ClearTileOnStartup)
+            ClearTile(ent);
+
+        if (ent.Comp.IsLight)
         {
-            // Requires a delay so that entities can register being on the tile for ClearTile
-            ClearTile((uid, crystal));
-
-            // Delay adding pointlight for when multiple are on one tile deleting each other so that it isn't jarring
-            if (crystal.IsLight)
-            {
-                EnsureComp<PointLightComponent>(uid);
-                _lights.SetRadius(uid, crystal.LightRadius);
-                _lights.SetEnergy(uid, crystal.LightEnergy);
-                _lights.SetColor(uid, crystal.LightColor);
-            }
-
-            RemCompDeferred<ActiveTileClearCrystalMassComponent>(uid);
+            var light = _lights.EnsureLight(ent);
+            _lights.SetRadius(ent, ent.Comp.LightRadius, light);
+            _lights.SetEnergy(ent, ent.Comp.LightEnergy, light);
+            _lights.SetColor(ent, ent.Comp.LightColor, light);
         }
     }
 
-    private void SetupCrystalMass(Entity<CrystalMassComponent> ent, ref ComponentStartup args)
+    private void SetupCrystalMass(Entity<CrystalMassComponent> ent)
     {
         if (!ent.Comp.StartupAppearance)
             return;
@@ -146,6 +136,15 @@ public sealed class CrystalMassSystem : SharedCrystalMassSystem
         _map.SetTile(neighborGrid, neighborPosition, new Tile(_tileDefManager[neighborTileReplacement].TileId, 0, variant));
     }
 
+    private void OnStepTriggered(Entity<CrystalMassComponent> ent, ref StepTriggeredOnEvent args)
+    {
+        if (HasComp<MobStateComponent>(args.Tripper)
+            || HasComp<ItemComponent>(args.Tripper))
+            _audio.PlayPvs(ent.Comp.DustSound, Transform(args.Tripper).Coordinates);
+
+        QueueDel(args.Tripper);
+    }
+
     private void ClearTile(Entity<CrystalMassComponent> ent)
     {
         var xform = Transform(ent);
@@ -174,29 +173,7 @@ public sealed class CrystalMassSystem : SharedCrystalMassSystem
                 || HasComp<ItemComponent>(target))
                 _audio.PlayPvs(ent.Comp.DustSound, Transform(target).Coordinates);
 
-            EntityManager.QueueDeleteEntity(target);
+            QueueDel(target);
         }
-    }
-
-    private void OnStepTriggered(Entity<CrystalMassComponent> ent, ref StepTriggeredOnEvent args)
-    {
-        if (HasComp<MobStateComponent>(args.Tripper)
-            || HasComp<ItemComponent>(args.Tripper))
-            _audio.PlayPvs(ent.Comp.DustSound, Transform(args.Tripper).Coordinates);
-
-        EntityManager.QueueDeleteEntity(args.Tripper);
-    }
-
-    private void OnStepTriggerAttempt(Entity<CrystalMassComponent> ent, ref StepTriggerAttemptEvent args)
-    {
-        if (HasComp<SupermatterImmuneComponent>(args.Tripper)
-            || HasComp<GodmodeComponent>(args.Tripper)
-            || HasComp<GhostComponent>(args.Tripper))
-        {
-            args.Cancelled = true;
-            return;
-        }
-
-        args.Continue = true;
     }
 }

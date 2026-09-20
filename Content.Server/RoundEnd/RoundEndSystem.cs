@@ -242,7 +242,7 @@ namespace Content.Server.RoundEnd
             }
         }
 
-        public void CancelRoundEndCountdown(EntityUid? requester = null, bool forceRecall = false)
+        public void CancelRoundEndCountdown(EntityUid? requester = null, bool forceRecall = false, bool checkAnnouncement = true)
         {
             if (_gameTicker.RunLevel != GameRunLevel.InRound)
                 return;
@@ -265,13 +265,16 @@ namespace Content.Server.RoundEnd
                 _adminLogger.Add(LogType.ShuttleRecalled, LogImpact.High, $"Shuttle recalled");
             }
 
-            _announcer.SendAnnouncement( // ee announce
-                _announcer.GetAnnouncementId("ShuttleRecalled"),
-                Filter.Broadcast(),
-                "round-end-system-shuttle-recalled-announcement",
-                Loc.GetString("round-end-system-shuttle-sender-announcement"),
-                Color.Gold
-            );
+            if (checkAnnouncement)
+            {
+                _announcer.SendAnnouncement( // ee announce
+                    _announcer.GetAnnouncementId("ShuttleRecalled"),
+                    Filter.Broadcast(),
+                    "round-end-system-shuttle-recalled-announcement",
+                    Loc.GetString("round-end-system-shuttle-sender-announcement"),
+                    Color.Gold
+                );
+            }
 
             LastCountdownStart = null;
             ExpectedCountdownEnd = null;
