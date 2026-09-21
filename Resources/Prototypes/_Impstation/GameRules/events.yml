@@ -379,4 +379,14 @@
     reoccurrenceDelay: 30
     duration: 450 # 7.5 minutes
     minimumPlayers: 20
-  - type: LocalizedRadiationStormRule
+  - type: LocalizedContinuousSpawnRule
+    table:
+      id: SmallRadiationPulse
+    radius:
+      min: 10
+      max: 15
+    timeBetweenSpawn:
+      min: 0
+      max: 2
+    nearestNavBeaconAnnouncement: station-event-localized-radiation-storm-announcement
+    

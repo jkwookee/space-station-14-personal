@@ -6,3 +6,12 @@
   - type: RadiationSource
     intensity: 15
     slope: 4
+
+- type: entity
+  parent: RadiationPulse
+  id: MediumRadiationPulse
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: RadiationSource
+    intensity: 10
+    slope: 1.5

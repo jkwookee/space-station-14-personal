@@ -3,26 +3,25 @@ using Content.Server._Impstation.StationEvents.Components;
 using Content.Server.Announcements.Systems;
 using Content.Server.Pinpointer;
 using Content.Server.StationEvents.Events;
+using Content.Shared.EntityTable;
 using Content.Shared.GameTicking.Components;
-using Content.Shared.Radiation.Components;
 using Content.Shared.Random.Helpers;
 using Robust.Server.GameObjects;
 using Robust.Shared.Map.Components;
 using Robust.Shared.Player;
-using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
 
 namespace Content.Server._Impstation.StationEvents.Events;
 
-public sealed class LocalizedRadiationStormRule : StationEventSystem<LocalizedRadiationStormRuleComponent>
+public sealed class LocalizedContinuousSpawnRule : StationEventSystem<LocalizedContinuousSpawnRuleComponent>
 {
     [Dependency] private readonly AnnouncerSystem _announcer = default!;
+    [Dependency] private readonly EntityTableSystem _entityTable = default!;
     [Dependency] private readonly MapSystem _map = default!;
     [Dependency] private readonly NavMapSystem _navMap = default!;
     [Dependency] private readonly TransformSystem _xform = default!;
-    private static readonly EntProtoId<RadiationPulseComponent> RadiationPulse = "SmallRadiationPulse";
 
-    protected override void Added(EntityUid uid, LocalizedRadiationStormRuleComponent component, GameRuleComponent gameRule, GameRuleAddedEvent args)
+    protected override void Added(EntityUid uid, LocalizedContinuousSpawnRuleComponent component, GameRuleComponent gameRule, GameRuleAddedEvent args)
     {
         if (!TryFindRandomTile(out var tile, out var station, out var grid, out var coords))
             return;
@@ -35,29 +34,40 @@ public sealed class LocalizedRadiationStormRule : StationEventSystem<LocalizedRa
         component.AvailableTiles = _map.GetLocalTilesIntersecting(
             grid,
             gridComp,
-            new Circle(coords.Position, component.StormRadius.Next(RobustRandom))
+            new Circle(coords.Position, component.Radius.Next(RobustRandom))
             ).ToList();
+
+        if (component.NearestNavBeaconAnnouncement == null)
+            return;
 
         _announcer.SendAnnouncement(
             _announcer.GetAnnouncementId(args.RuleId),
             Filter.Broadcast(),
-            component.Announcement,
+            component.NearestNavBeaconAnnouncement,
             colorOverride: Color.Gold,
             localeArgs: ("beacon", _navMap.GetNearestBeaconString(_xform.ToMapCoordinates(coords), true))
             );
     }
 
-    protected override void ActiveTick(EntityUid uid, LocalizedRadiationStormRuleComponent component, GameRuleComponent gameRule, float frameTime)
+    protected override void ActiveTick(EntityUid uid, LocalizedContinuousSpawnRuleComponent component, GameRuleComponent gameRule, float frameTime)
     {
         base.ActiveTick(uid, component, gameRule, frameTime);
 
-        if (Timing.CurTime < component.TimeUntilNextPulse)
+        if (Timing.CurTime < component.TimeUntilNextSpawn)
             return;
 
-        var randomTile = RobustRandom.Pick(component.AvailableTiles);
+        var total = component.Amount.Next(RobustRandom);
+        for (var i = 0; i < total; i++)
+        {
+            var randomTile = RobustRandom.Pick(component.AvailableTiles);
+            var coords = _map.ToCenterCoordinates(randomTile);
+            foreach (var proto in _entityTable.GetSpawns(component.Table))
+            {
+                Sawmill.Info($"Spawning {proto} at {coords}");
+                Spawn(proto, coords);
+            }
+        }
 
-        Spawn(RadiationPulse, _map.ToCenterCoordinates(randomTile));
-
-        component.TimeUntilNextPulse = Timing.CurTime + TimeSpan.FromSeconds(component.TimeBetweenPulse.Next(RobustRandom));
+        component.TimeUntilNextSpawn = Timing.CurTime + TimeSpan.FromSeconds(component.TimeBetweenSpawn.Next(RobustRandom));
     }
 }
