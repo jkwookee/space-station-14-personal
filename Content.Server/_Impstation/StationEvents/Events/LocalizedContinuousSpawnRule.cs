@@ -23,7 +23,7 @@ public sealed class LocalizedContinuousSpawnRule : StationEventSystem<LocalizedC
 
     protected override void Added(EntityUid uid, LocalizedContinuousSpawnRuleComponent component, GameRuleComponent gameRule, GameRuleAddedEvent args)
     {
-        if (!TryFindRandomTile(out var tile, out var station, out var grid, out var coords)\
+        if (!TryFindRandomTile(out var tile, out var station, out var grid, out var coords)
             || !TryComp<MapGridComponent>(grid, out var gridComp))
         {
             ForceEndSelf(uid, gameRule);
