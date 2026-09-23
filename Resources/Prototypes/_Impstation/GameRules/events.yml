@@ -303,6 +303,26 @@
 
 - type: entity
   parent: BaseStationEventLongDelay
+  id: SupermatterFlareUp
+  components:
+  - type: StationEvent
+    weight: 3
+    startAnnouncement: true
+    earliestStart: 30
+    reoccurrenceDelay: 25
+    duration: 60
+    minimumPlayers: 20
+  - type: SupermatterSurgeRule
+    power:
+      min: 1000
+      max: 2000
+    heatModifier:
+      min: 1
+      max: 5
+    zapCount: 0
+
+- type: entity
+  parent: BaseStationEventLongDelay
   id: SupermatterSurge
   components:
   - type: StationEvent
