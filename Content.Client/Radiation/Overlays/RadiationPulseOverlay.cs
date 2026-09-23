@@ -39,7 +39,7 @@ namespace Content.Client.Radiation.Overlays
 
         protected override bool BeforeDraw(in OverlayDrawArgs args)
         {
-            RadiationQuery(args.Viewport.Eye);
+            RadiationQuery(args); // imp, changed args.Viewport.Eye to args
             return _pulses.Count > 0;
         }
 
@@ -94,23 +94,25 @@ namespace Content.Client.Radiation.Overlays
         }
 
         //Queries all pulses on the map and either adds or removes them from the list of rendered pulses based on whether they should be drawn (in range? on the same z-level/map? pulse entity still exists?)
-        private void RadiationQuery(IEye? currentEye)
+        private void RadiationQuery(in OverlayDrawArgs args) // imp, changed IEye? currentEye to in OverlayDrawArgs args
         {
             _transform ??= _entityManager.System<TransformSystem>();
 
-            if (currentEye == null)
+            if (args.Viewport.Eye == null) // imp, changed currentEye to args.Viewport.Eye
             {
                 _pulses.Clear();
                 return;
             }
 
+            /* imp removal
             var currentEyeLoc = currentEye.Position;
+            */
 
             var pulses = _entityManager.EntityQueryEnumerator<RadiationPulseComponent>();
             //Add all pulses that are not added yet but qualify
             while (pulses.MoveNext(out var pulseEntity, out var pulse))
             {
-                if (!_pulses.ContainsKey(pulseEntity) && PulseQualifies(pulseEntity, currentEyeLoc))
+                if (!_pulses.ContainsKey(pulseEntity) && PulseQualifies(pulseEntity, args.WorldAABB, args.MapId)) // imp, changed variables PulseQualifies takes in to match imp changes
                 {
                     _pulses.Add(
                             pulseEntity,
@@ -131,7 +133,7 @@ namespace Content.Client.Radiation.Overlays
             foreach (var pulseEntity in activeShaderIds) //Remove all pulses that are added and no longer qualify
             {
                 if (_entityManager.EntityExists(pulseEntity) &&
-                    PulseQualifies(pulseEntity, currentEyeLoc) &&
+                    PulseQualifies(pulseEntity, args.WorldAABB, args.MapId) && // imp, changed variables PulseQualifies takes in to match imp changes
                     _entityManager.TryGetComponent(pulseEntity, out RadiationPulseComponent? pulse))
                 {
                     var shaderInstance = _pulses[pulseEntity];
@@ -147,12 +149,22 @@ namespace Content.Client.Radiation.Overlays
 
         }
 
-        private bool PulseQualifies(EntityUid pulseEntity, MapCoordinates currentEyeLoc)
+        private bool PulseQualifies(EntityUid pulseEntity, Box2 worldAABB, MapId mapId) // imp, changed from MapCoordinates currentEyeLoc to Box2 worldAABB, MapId mapId
         {
             var transformComponent = _entityManager.GetComponent<TransformComponent>(pulseEntity);
             var transformSystem = _entityManager.System<SharedTransformSystem>();
+            /* imp removal, using SingularityOverlay logic instead
             return transformComponent.MapID == currentEyeLoc.MapId
                 && transformSystem.InRange(transformComponent.Coordinates, transformSystem.ToCoordinates(transformComponent.ParentUid, currentEyeLoc), MaxDist);
+            */
+
+            // imp start
+            if (transformComponent.MapID != mapId)
+                return false;
+
+            var mapPos = transformSystem.GetWorldPosition(transformComponent);
+            return (mapPos - worldAABB.ClosestPoint(mapPos)).LengthSquared() <= MaxDist * MaxDist;
+            // imp end
         }
 
         private sealed record RadiationShaderInstance(MapCoordinates CurrentMapCoords, float Range, TimeSpan Start, float Duration)
