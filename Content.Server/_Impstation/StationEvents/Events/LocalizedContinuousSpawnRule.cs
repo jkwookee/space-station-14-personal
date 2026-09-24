@@ -38,6 +38,7 @@ public sealed class LocalizedContinuousSpawnRule : StationEventSystem<LocalizedC
             new Circle(coords.Position, component.Radius.Next(RobustRandom))
             ).ToList();
 
+        component.NearestNavBeacon = _navMap.GetNearestBeaconString(_xform.ToMapCoordinates(coords), true);
         if (component.NearestNavBeaconAnnouncement == null)
             return;
 
@@ -46,7 +47,7 @@ public sealed class LocalizedContinuousSpawnRule : StationEventSystem<LocalizedC
             Filter.Broadcast(),
             component.NearestNavBeaconAnnouncement,
             colorOverride: Color.Gold,
-            localeArgs: ("beacon", _navMap.GetNearestBeaconString(_xform.ToMapCoordinates(coords), true))
+            localeArgs: ("beacon", component.NearestNavBeacon)
             );
     }
 
@@ -70,5 +71,21 @@ public sealed class LocalizedContinuousSpawnRule : StationEventSystem<LocalizedC
         }
 
         component.TimeUntilNextSpawn = Timing.CurTime + TimeSpan.FromSeconds(component.TimeBetweenSpawn.Next(RobustRandom));
+    }
+
+    protected override void Ended(EntityUid uid, LocalizedContinuousSpawnRuleComponent component, GameRuleComponent gameRule, GameRuleEndedEvent args)
+    {
+        base.Ended(uid, component, gameRule, args);
+
+        if (component.NearestNavBeaconEndAnnouncement == null)
+            return;
+
+        _announcer.SendAnnouncement(
+            _announcer.GetAnnouncementId(args.RuleId),
+            Filter.Broadcast(),
+            component.NearestNavBeaconEndAnnouncement,
+            colorOverride: Color.Gold,
+            localeArgs: ("beacon", component.NearestNavBeacon)
+            );
     }
 }
