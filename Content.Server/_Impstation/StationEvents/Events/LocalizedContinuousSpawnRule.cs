@@ -77,11 +77,11 @@ public sealed class LocalizedContinuousSpawnRule : StationEventSystem<LocalizedC
     {
         base.Ended(uid, component, gameRule, args);
 
-        if (component.NearestNavBeaconEndAnnouncement == null)
+        if (component.NearestNavBeaconEndAnnouncement == null || component.NearestNavBeacon == null)
             return;
 
         _announcer.SendAnnouncement(
-            _announcer.GetAnnouncementId(args.RuleId),
+            _announcer.GetAnnouncementId(args.RuleId, true),
             Filter.Broadcast(),
             component.NearestNavBeaconEndAnnouncement,
             colorOverride: Color.Gold,

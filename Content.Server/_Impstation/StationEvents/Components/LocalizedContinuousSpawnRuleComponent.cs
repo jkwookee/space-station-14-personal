@@ -27,7 +27,7 @@ public sealed partial class LocalizedContinuousSpawnRuleComponent : Component
     public LocId? NearestNavBeaconEndAnnouncement;
 
     [ViewVariables(VVAccess.ReadOnly)]
-    public string NearestNavBeacon;
+    public string? NearestNavBeacon;
 
     [ViewVariables(VVAccess.ReadOnly)]
     public TimeSpan TimeUntilNextSpawn;
