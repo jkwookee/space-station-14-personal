@@ -1,11 +1,4 @@
 ﻿Entries:
-- author: hivehum
-  changes:
-  - message: Ungu and Allulalo are now complex lifeforms, legally speaking.
-    type: Fix
-  id: 2462
-  time: '2025-12-05T10:05:35.0000000+00:00'
-  url: https://github.com/impstation/imp-station-14/pull/3802
 - author: DinnerCalzone, mqole, DVDPlayer
   changes:
   - message: A new upstream merge has been merged, up to date with Wizden's October
@@ -4049,3 +4042,14 @@
   id: 2961
   time: '2026-09-25T07:43:25.0000000+00:00'
   url: https://github.com/impstation/imp-station-14/pull/4653
+- author: fancyplanks
+  changes:
+  - message: Changed the RCD icons for walls & windows
+    type: Tweak
+  - message: Changed some wall & window sprites
+    type: Tweak
+  - message: Girder construction ghosts now work correctly
+    type: Fix
+  id: 2962
+  time: '2026-09-25T07:58:23.0000000+00:00'
+  url: https://github.com/impstation/imp-station-14/pull/4659
