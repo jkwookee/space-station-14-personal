@@ -1,13 +1,4 @@
 ﻿Entries:
-- author: Smugman
-  changes:
-  - message: Recruiters and Synthesis Specialists are less rare now
-    type: Tweak
-  - message: Treatcoins actually spawn properly despite full hands
-    type: Fix
-  id: 2457
-  time: '2025-12-01T22:57:31.0000000+00:00'
-  url: https://github.com/impstation/imp-station-14/pull/3736
 - author: Spung22
   changes:
   - message: Listening Post Operatives no longer have a species accent.
@@ -4060,3 +4051,10 @@
   id: 2956
   time: '2026-09-21T19:32:17.0000000+00:00'
   url: https://github.com/impstation/imp-station-14/pull/4646
+- author: crocodilecarousel
+  changes:
+  - message: Aureole arc and umbral arc bows have been fixed
+    type: Fix
+  id: 2957
+  time: '2026-09-25T06:43:48.0000000+00:00'
+  url: https://github.com/impstation/imp-station-14/pull/4552
