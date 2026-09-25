@@ -1,14 +1,6 @@
 ﻿Entries:
 - author: hivehum
   changes:
-  - message: The quick construction menu for wood and metal rods are a bit better
-      than before.
-    type: Tweak
-  id: 2461
-  time: '2025-12-05T10:09:39.0000000+00:00'
-  url: https://github.com/impstation/imp-station-14/pull/3771
-- author: hivehum
-  changes:
   - message: Ungu and Allulalo are now complex lifeforms, legally speaking.
     type: Fix
   id: 2462
@@ -4050,3 +4042,10 @@
   id: 2960
   time: '2026-09-25T07:28:56.0000000+00:00'
   url: https://github.com/impstation/imp-station-14/pull/4635
+- author: Simul-ad-Astra
+  changes:
+  - message: New instant grenades available for Nuclear Operatives!
+    type: Add
+  id: 2961
+  time: '2026-09-25T07:43:25.0000000+00:00'
+  url: https://github.com/impstation/imp-station-14/pull/4653
