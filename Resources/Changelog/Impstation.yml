@@ -1,13 +1,6 @@
 ﻿Entries:
 - author: 12rabbits
   changes:
-  - message: Mimes can no longer use AAC tablets without first breaking their vow.
-    type: Tweak
-  id: 2464
-  time: '2025-12-05T10:04:46.0000000+00:00'
-  url: https://github.com/impstation/imp-station-14/pull/3781
-- author: 12rabbits
-  changes:
   - message: Cyborgs now receive notifications for new unread NanoChat messages.
     type: Fix
   id: 2465
@@ -4052,3 +4045,11 @@
   id: 2963
   time: '2026-09-25T08:08:26.0000000+00:00'
   url: https://github.com/impstation/imp-station-14/pull/4475
+- author: msTheowo
+  changes:
+  - message: Characters created with the Random Character trait have records. You
+      can check their fingerprints now.
+    type: Fix
+  id: 2964
+  time: '2026-09-25T08:21:54.0000000+00:00'
+  url: https://github.com/impstation/imp-station-14/pull/4564
