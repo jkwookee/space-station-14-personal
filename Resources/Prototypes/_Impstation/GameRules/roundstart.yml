@@ -10,8 +10,8 @@
     agentName: traitor-round-end-agent-name
 
 - type: entity
-  id: SpaceTrafficControlPossibleHostileEventScheduler
   parent: BaseGameRule
+  id: SpaceTrafficControlPossibleHostileEventScheduler
   components:
   - type: BasicStationEventScheduler
     minimumTimeUntilFirstEvent: 1200 # 20 mins
