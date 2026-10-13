@@ -328,7 +328,7 @@ public sealed partial class SupermatterComponent : Component
     public TimeSpan ZapLast;
 
     [ViewVariables(VVAccess.ReadOnly)]
-    public TimeSpan RadiationPulseLast;
+    public TimeSpan NextRadiationPulse;
 
     [DataField]
     public MinMax RadiationPulseCooldown = new(10, 15);

@@ -18,7 +18,7 @@ public sealed class RadiationPulseSystem : EntitySystem
 
     private void OnStartup(EntityUid uid, RadiationPulseComponent component, ComponentStartup args)
     {
-        _pvs.AddGlobalOverride(uid); // imp
+        _pvs.AddGlobalOverride(uid); // imp, needed since pulses with large range and the entity out of pvs will not send data to create visuals even if the edge of the pulse should be seen
 
         component.StartTime = _timing.RealTime;
 

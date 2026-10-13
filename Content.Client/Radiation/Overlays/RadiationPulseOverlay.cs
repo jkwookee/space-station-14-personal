@@ -30,11 +30,13 @@ namespace Content.Client.Radiation.Overlays
 
         private readonly ShaderInstance _baseShader;
         private readonly Dictionary<EntityUid, (ShaderInstance shd, RadiationShaderInstance instance)> _pulses = new();
+        private bool _simplifiedRadiationPulse; // imp
 
         public RadiationPulseOverlay()
         {
             IoCManager.InjectDependencies(this);
             _baseShader = _prototypeManager.Index(RadiationShader).Instance().Duplicate();
+            _configManager.OnValueChanged(ImpCCVars.EnableSimplifiedRadiationPulse, value => _simplifiedRadiationPulse = value, invokeImmediately: true); // imp
         }
 
         protected override bool BeforeDraw(in OverlayDrawArgs args)
@@ -59,7 +61,7 @@ namespace Content.Client.Radiation.Overlays
                 // imp start
                 var life = (_gameTiming.RealTime - instance.Start).TotalSeconds / instance.Duration;
 
-                if (_configManager.GetCVar(ImpCCVars.EnableSimplifiedRadiationPulse))
+                if (_simplifiedRadiationPulse)
                 {
                     // mirroring what is done in the shader without all the noise
                     var nlife = MathF.Pow(MathF.Sin((float)life * MathF.PI), 0.5f);

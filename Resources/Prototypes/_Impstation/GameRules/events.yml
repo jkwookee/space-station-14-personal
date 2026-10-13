@@ -370,8 +370,8 @@
     announcement: station-event-explosive-mine-resurfacing-announcement
 
 - type: entity
-  id: LocalizedRadiationStorm
   parent: BaseStationEventLongDelay
+  id: LocalizedRadiationStorm
   components:
   - type: StationEvent
     weight: 5

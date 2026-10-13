@@ -5,8 +5,8 @@
   - type: CascadeRule
 
 - type: entity
-  id: SupermatterRadiationStorm
   parent: BaseStationEventShortDelay
+  id: SupermatterRadiationStorm
   components:
   - type: StationEvent
     weight: 5

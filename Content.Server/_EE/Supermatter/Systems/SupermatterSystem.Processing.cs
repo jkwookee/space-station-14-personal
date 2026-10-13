@@ -236,10 +236,10 @@ public sealed partial class SupermatterSystem
 
     private void SupermatterRadiationPulse(EntityUid uid, SupermatterComponent sm)
     {
-        if (_timing.CurTime < sm.RadiationPulseLast)
+        if (_timing.CurTime < sm.NextRadiationPulse)
             return;
 
-        sm.RadiationPulseLast = _timing.CurTime + TimeSpan.FromSeconds(sm.RadiationPulseCooldown.Next(_random));
+        sm.NextRadiationPulse = _timing.CurTime + TimeSpan.FromSeconds(sm.RadiationPulseCooldown.Next(_random));
 
         if (sm.GasStorage is not { } gasStorage)
             return;
@@ -251,15 +251,12 @@ public sealed partial class SupermatterSystem
         if (_random.Prob(0.5f))
             pulseTier += 1;
 
-        // 600 moles
         if (gasStorage.TotalMoles >= _config.GetCVar(EECCVars.SupermatterMolePenaltyThreshold))
             pulseTier += 1;
 
-        // 1200 moles
         if (gasStorage.TotalMoles >= _config.GetCVar(EECCVars.SupermatterMolePenaltyThreshold) * 2f)
             pulseTier += 1;
 
-        // 1800 moles
         if (gasStorage.TotalMoles >= _config.GetCVar(EECCVars.SupermatterMolePenaltyThreshold) * 3f)
             pulseTier += 1;
 
