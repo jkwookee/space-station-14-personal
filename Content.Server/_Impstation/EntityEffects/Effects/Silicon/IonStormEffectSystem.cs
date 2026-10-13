@@ -1,6 +1,7 @@
 using Content.Server.Silicons.Laws;
 using Content.Shared.EntityEffects;
 using Content.Shared.Silicons.Laws.Components;
+using Content.Shared._Impstation.EntityEffects.Effects.Silicon; // IMP IonStorm is imp scoped
 namespace Content.Server._DV.EntityEffects.Effects.Silicon;
 
 public sealed class IonStormEffectSystem : EntityEffectSystem<IonStormTargetComponent, IonStorm>
@@ -13,6 +14,8 @@ public sealed class IonStormEffectSystem : EntityEffectSystem<IonStormTargetComp
         if (!TryComp<SiliconLawBoundComponent>(entity, out var laws))
             return;
 
-        _ionStorm.IonStormTarget((entity.Owner, laws, entity.Comp));
+        return;
+        //_ionStorm.IonStormTarget((entity.Owner, laws, entity.Comp));
+        //_ionStorm.IonStormTarget(laws.Owner, )
     }
 }

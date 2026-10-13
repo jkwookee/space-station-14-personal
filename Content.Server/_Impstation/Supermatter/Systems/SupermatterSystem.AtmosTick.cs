@@ -6,6 +6,7 @@ using Content.Shared._Impstation.CCVar;
 using Content.Shared.Atmos;
 using Content.Shared.Radiation.Components;
 using Robust.Shared.Map.Components;
+using Content.Server.Atmos.Reactions;
 
 namespace Content.Server._Impstation.Supermatter.Systems;
 
@@ -125,7 +126,8 @@ public sealed partial class SupermatterSystem
         ProcessRadiation(ent, gasComposition);
 
         // Affects plasma, o2 and heat output.
-        ent.Comp.GasWasteModifier = SupermatterGasData.GetMixWastePenalty(gasComposition);
+        var wastePenalty = SupermatterGasData.GetMixWastePenalty(gasComposition);
+        ent.Comp.GasWasteModifier = wastePenalty * ent.Comp.GasWasteSurgeModifier;
         DirtyField(ent.Owner, ent.Comp, nameof(SupermatterComponent.GasWasteModifier));
 
         ProcessWaste(ent.Owner, ent.Comp, atmosDeviceTime, mix);
