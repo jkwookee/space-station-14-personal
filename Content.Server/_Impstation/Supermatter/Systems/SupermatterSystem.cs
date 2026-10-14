@@ -31,6 +31,7 @@ using Robust.Shared.Player;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
 using Robust.Shared.Spawners;
+using Content.Shared.Silicons.Laws.Components;
 
 namespace Content.Server._Impstation.Supermatter.Systems;
 
@@ -109,6 +110,15 @@ public sealed partial class SupermatterSystem : SharedSupermatterSystem
         // Play the reality distortion sound for every player on the map
         Audio.PlayGlobal(sm.DistortSound, mapFilter, true);
 
+        // one of the gamerules that we do have defined is an ionstorm, including AIs
+        // we need to actually make sure that AIs have the IonStormTargetComponent.
+        // may as well ensure all SiliconLawProviders have said component at the same time
+        var lawBoundLookup = new HashSet<Entity<SiliconLawBoundComponent>>();
+        EntityLookup.GetEntitiesOnMap<SiliconLawBoundComponent>(mapId, lawBoundLookup);
+        foreach (var lawBound in lawBoundLookup)
+            EnsureComp<IonStormTargetComponent>(lawBound);
+
+        // now we run the gamerules
         foreach (var gameRule in sm.PreferredDelamination.GameRules)
         {
             // delamination game rules
@@ -381,7 +391,10 @@ public sealed partial class SupermatterSystem : SharedSupermatterSystem
                 {
                     // We don't want to send the 0% integrity message, and we only want to emit the warning if the supermatter is taking damage. 
                     var isEmergency = sm.Damage >= sm.DamageEmergencyThreshold;
-                    var message = Loc.GetString(isEmergency? "supermatter-emergency" : "supermatter-warning", ("integrity", integrity));
+                    var message = Loc.GetString(isEmergency ? "supermatter-emergency" : "supermatter-warning",
+                        ("integrity", integrity),
+                        ("typeUpper", sm.IsShard ? "SHARD" : "CRYSTAL"),
+                        ("type", sm.IsShard ? "shard" : "crystal"));
                     SendSupermatterAnnouncement(uid, sm, message, isEmergency);
 
                     if (sm.Power >= Config.GetCVar(ImpCCVars.SupermatterPowerPenaltyThreshold))
@@ -456,12 +469,14 @@ public sealed partial class SupermatterSystem : SharedSupermatterSystem
             DirtyField(uid, sm, nameof(SupermatterComponent.PreferredDelaminationProtoId));
         }
 
-        _adminLog.Add(LogType.Unknown, LogImpact.Medium, $"{EntityManager.ToPrettyString(uid):uid} delamination started with type {sm.PreferredDelamination}");
-        _chatManager.SendAdminAlert($"{EntityManager.ToPrettyString(uid):uid} delamination started with type {sm.PreferredDelamination}");
+        _adminLog.Add(LogType.Unknown, LogImpact.Medium, $"{EntityManager.ToPrettyString(uid):uid} delamination started with type {sm.PreferredDelaminationProtoId}");
+        _chatManager.SendAdminAlert($"{EntityManager.ToPrettyString(uid):uid} delamination started with type {sm.PreferredDelaminationProtoId}");
 
         var sb = new StringBuilder();
-        sb.AppendLine(Loc.GetString(sm.PreferredDelamination?.Message ?? "supermatter-delam-generic"));
-        sb.Append(Loc.GetString("supermatter-time-before-delam", ("time", sm.DelaminationDelay)));
+        sb.AppendLine(Loc.GetString(sm.PreferredDelamination?.Message ?? "supermatter-delam-generic",
+            ("typeUpper", sm.IsShard ? "SHARD" : "CRYSTAL"),
+            ("type", sm.IsShard ? "shard" : "crystal")));
+        sb.Append(Loc.GetString("supermatter-time-before-delam", ("time", sm.DelaminationDelay.TotalSeconds)));
 
         sm.IsDelaminationAnnounced = true;
         SendSupermatterAnnouncement(uid, sm, sb.ToString(), true);
