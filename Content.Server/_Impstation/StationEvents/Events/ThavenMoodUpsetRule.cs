@@ -4,15 +4,11 @@ using Content.Server._Impstation.StrangeMoods;
 using Content.Server.StationEvents.Events;
 using Content.Shared._Impstation.StrangeMoods;
 using Content.Shared.GameTicking.Components;
-using Robust.Shared.Random;
 
 namespace Content.Server._Impstation.StationEvents.Events;
 public sealed class ThavenMoodUpsetRule : StationEventSystem<ThavenMoodUpsetRuleComponent>
 {
-    [Dependency] private readonly IRobustRandom _random = default!;
     [Dependency] private readonly StrangeMoodsSystem _moodsSystem = default!;
-
-    private StrangeMoodPrototype _selectedMoodPrototype = default!;
 
     protected override void Started(EntityUid uid, ThavenMoodUpsetRuleComponent component, GameRuleComponent gameRule, GameRuleStartedEvent args)
     {
