@@ -36,7 +36,7 @@ namespace Content.Client.Radiation.Overlays
         {
             IoCManager.InjectDependencies(this);
             _baseShader = _prototypeManager.Index(RadiationShader).Instance().Duplicate();
-            _configManager.OnValueChanged(ImpCCVars.EnableSimplifiedRadiationPulse, value => _simplifiedRadiationPulse = value, invokeImmediately: true); // imp
+            _configManager.OnValueChanged(ImpCCVars.EnableSimplifiedRadiationPulse, value => _simplifiedRadiationPulse = value, true); // imp
         }
 
         protected override bool BeforeDraw(in OverlayDrawArgs args)
