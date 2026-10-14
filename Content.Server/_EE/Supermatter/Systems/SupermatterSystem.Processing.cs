@@ -234,17 +234,17 @@ public sealed partial class SupermatterSystem
             _lightning.ShootRandomLightnings(uid, zapRange, zapCount, sm.LightningPrototypes[zapPower], hitCoordsChance: sm.ZapHitCoordinatesChance, canExplode: false);
     }
 
-    private void SupermatterRadiationPulse(EntityUid uid, SupermatterComponent sm)
+    private void SupermatterRadiationPulse(Entity<SupermatterComponent> ent)
     {
-        if (_timing.CurTime < sm.NextRadiationPulse)
+        if (_timing.CurTime < ent.Comp.NextRadiationPulse)
             return;
 
-        sm.NextRadiationPulse = _timing.CurTime + TimeSpan.FromSeconds(sm.RadiationPulseCooldown.Next(_random));
+        ent.Comp.NextRadiationPulse = _timing.CurTime + TimeSpan.FromSeconds(ent.Comp.RadiationPulseCooldown.Next(_random));
 
-        if (sm.GasStorage is not { } gasStorage)
+        if (ent.Comp.GasStorage is not { } gasStorage)
             return;
 
-        if (sm.Damage < sm.DamagePenaltyPoint && gasStorage.TotalMoles < _config.GetCVar(EECCVars.SupermatterMolePenaltyThreshold))
+        if (ent.Comp.Damage < ent.Comp.DamagePenaltyPoint && gasStorage.TotalMoles < _config.GetCVar(EECCVars.SupermatterMolePenaltyThreshold))
             return;
 
         var pulseTier = 0;
@@ -263,7 +263,7 @@ public sealed partial class SupermatterSystem
         if (pulseTier <= 0)
             return;
 
-        Spawn(sm.RadiationPulsePrototypes[pulseTier - 1], Transform(uid).Coordinates);
+        Spawn(ent.Comp.RadiationPulsePrototypes[pulseTier - 1], Transform(ent).Coordinates);
     }
 
     /// <summary>
