@@ -105,7 +105,7 @@ public sealed partial class SupermatterSystem
 
         _chatManager.SendAdminAlert($"{EntityManager.ToPrettyString(ent.Owner):uid} has consumed {EntityManager.ToPrettyString(target):target}");
         _adminLog.Add(LogType.EntityDelete, LogImpact.High, $"{EntityManager.ToPrettyString(target):target} touched {EntityManager.ToPrettyString(ent.Owner):uid} and was destroyed at {Transform(ent.Owner).Coordinates:coordinates}");
-        EntityManager.SpawnEntity(ent.Comp.AshPrototype, Transform(target).Coordinates);
+        EntityManager.SpawnEntity(ent.Comp.CollisionResultPrototype, Transform(target).Coordinates);
         EntityManager.QueueDeleteEntity(target);
 
         args.Handled = true;
@@ -149,7 +149,7 @@ public sealed partial class SupermatterSystem
             AddComp<SupermatterImmuneComponent>(item);
 
             _adminLog.Add(LogType.EntityDelete, LogImpact.High, $"{EntityManager.ToPrettyString(target):target} touched {EntityManager.ToPrettyString(ent.Owner):uid} with {EntityManager.ToPrettyString(item):item} and both were destroyed at {Transform(ent.Owner).Coordinates:coordinates}");
-            EntityManager.SpawnEntity(ent.Comp.AshPrototype, Transform(target).Coordinates);
+            EntityManager.SpawnEntity(ent.Comp.CollisionResultPrototype, Transform(target).Coordinates);
             EntityManager.QueueDeleteEntity(target);
             EntityManager.QueueDeleteEntity(item);
         }
@@ -196,12 +196,12 @@ public sealed partial class SupermatterSystem
             if (_mobStateQuery.HasComp(target))
             {
                 popup = "supermatter-collide-mob";
-                EntityManager.SpawnEntity(ent.Comp.AshPrototype, Transform(target).Coordinates);
+                EntityManager.SpawnEntity(ent.Comp.CollisionResultPrototype, Transform(target).Coordinates);
                 _chatManager.SendAdminAlert($"{EntityManager.ToPrettyString(ent.Owner):uid} has consumed {EntityManager.ToPrettyString(target):target}");
             }
 
             var targetProto = MetaData(target).EntityPrototype;
-            if (targetProto != null && targetProto.ID != ent.Comp.AshPrototype)
+            if (targetProto != null && targetProto.ID != ent.Comp.CollisionResultPrototype)
             {
                 _popup.PopupEntity(Loc.GetString(popup, ("sm", ent.Owner), ("target", target)), ent, PopupType.LargeCaution);
                 Audio.PlayPvs(ent.Comp.DustSound, ent);

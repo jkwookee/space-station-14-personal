@@ -66,7 +66,7 @@ public sealed partial class SupermatterComponent : Component
     public ProtoId<SupermatterDelaminationPrototype> DefaultDelamination = "SupermatterDelaminationExplosion";
 
     [DataField]
-    public EntProtoId AshPrototype = "Ash";
+    public EntProtoId CollisionResultPrototype = "Ash";
 
     [DataField]
     public EntProtoId LightningPrototype = "SupermatterLightningSupercharged";
