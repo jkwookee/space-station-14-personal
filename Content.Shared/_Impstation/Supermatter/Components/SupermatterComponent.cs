@@ -1,7 +1,6 @@
 using System.Collections.Frozen;
 using Content.Shared._Impstation.Supermatter.Prototypes;
 using Content.Shared.Atmos;
-using Content.Shared.Destructible.Thresholds;
 using Content.Shared.DeviceLinking;
 using Content.Shared.DoAfter;
 using Content.Shared.Radio;

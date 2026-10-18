@@ -31,7 +31,6 @@ using Robust.Shared.Player;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
 using Robust.Shared.Spawners;
-using Content.Shared.Silicons.Laws.Components;
 
 namespace Content.Server._Impstation.Supermatter.Systems;
 
@@ -109,14 +108,6 @@ public sealed partial class SupermatterSystem : SharedSupermatterSystem
 
         // Play the reality distortion sound for every player on the map
         Audio.PlayGlobal(sm.DistortSound, mapFilter, true);
-
-        // one of the gamerules that we do have defined is an ionstorm, including AIs
-        // we need to actually make sure that AIs have the IonStormTargetComponent.
-        // may as well ensure all SiliconLawProviders have said component at the same time
-        //var lawBoundLookup = new HashSet<Entity<SiliconLawBoundComponent>>();
-        //EntityLookup.GetEntitiesOnMap<SiliconLawBoundComponent>(mapId, lawBoundLookup);
-        //foreach (var lawBound in lawBoundLookup)
-        //    EnsureComp<IonStormTargetComponent>(lawBound);
 
         // now we run the gamerules
         foreach (var gameRule in sm.PreferredDelamination.GameRules)
