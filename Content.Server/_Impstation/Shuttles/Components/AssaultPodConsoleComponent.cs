@@ -3,13 +3,13 @@ using Robust.Shared.Map;
 
 namespace Content.Server._Impstation.Shuttles.Components;
 
-[RegisterComponent]
+[RegisterComponent, AutoGenerateComponentPause]
 public sealed partial class AssaultPodConsoleComponent : Component
 {
     [ViewVariables(VVAccess.ReadOnly)]
     public int InsertedTelecrystals;
 
-    [ViewVariables(VVAccess.ReadOnly)]
+    [ViewVariables(VVAccess.ReadOnly), AutoPausedField]
     public TimeSpan? LaunchTime;
 
     [ViewVariables(VVAccess.ReadOnly)]
