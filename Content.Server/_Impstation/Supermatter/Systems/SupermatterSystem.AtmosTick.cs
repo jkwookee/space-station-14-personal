@@ -6,11 +6,16 @@ using Content.Shared._Impstation.CCVar;
 using Content.Shared.Atmos;
 using Content.Shared.Radiation.Components;
 using Robust.Shared.Map.Components;
+using Content.Shared.Damage;
+using Robust.Shared.Prototypes;
+using Content.Shared.Damage.Prototypes;
 
 namespace Content.Server._Impstation.Supermatter.Systems;
 
 public sealed partial class SupermatterSystem
 {
+    private static readonly ProtoId<DamageTypePrototype> StructuralDamageType = "Structural";
+
     /// <summary>
     /// This is used for the radiation levels produced by the supermatter.
     /// </summary>
@@ -316,7 +321,8 @@ public sealed partial class SupermatterSystem
         var damage = Math.Min(ent.Comp.DamageArchived + ent.Comp.MaximumDamagePerCycle * ent.Comp.DamageDelaminationThreshold, ent.Comp.Damage + totalDamage);
 
         // Prevent it from going negative
-        ent.Comp.Damage = Math.Clamp(damage, 0, float.PositiveInfinity);
+        var clampedDamage = Math.Clamp(damage, 0, float.PositiveInfinity);
+        _damageable.SetDamage(ent.Owner, new DamageSpecifier(PrototypeManager.Index(StructuralDamageType), clampedDamage));
 
         var actualDamage = ent.Comp.Damage - ent.Comp.DamageArchived;
 
