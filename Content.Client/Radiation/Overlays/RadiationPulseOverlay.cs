@@ -9,11 +9,12 @@ using Robust.Shared.Physics;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Timing;
 using Content.Shared._Impstation.CCVar; // imp
+using Content.Shared._Impstation.Radiation.Events; // imp
 using Robust.Shared.Configuration; // imp
 
 namespace Content.Client.Radiation.Overlays
 {
-    public sealed class RadiationPulseOverlay : Overlay
+    public sealed class RadiationPulseOverlay : Overlay, IEntityEventSubscriber // imp, added IEntityEventSubscriber
     {
         private static readonly ProtoId<ShaderPrototype> RadiationShader = "Radiation";
 
@@ -29,13 +30,15 @@ namespace Content.Client.Radiation.Overlays
         public override bool RequestScreenTexture => true;
 
         private readonly ShaderInstance _baseShader;
-        private readonly Dictionary<EntityUid, (ShaderInstance shd, RadiationShaderInstance instance)> _pulses = new();
+        private readonly Dictionary<NetEntity, (ShaderInstance shd, RadiationShaderInstance instance)> _pulses = new(); // imp, changed from EntityUid to NetEntity
         private bool _simplifiedRadiationPulse; // imp
 
         public RadiationPulseOverlay()
         {
             IoCManager.InjectDependencies(this);
             _baseShader = _prototypeManager.Index(RadiationShader).Instance().Duplicate();
+
+            _entityManager.EventBus.SubscribeEvent<RadiationPulseInRangeEvent>(EventSource.Network, this, OnRadiationPulseInRangeEvent); // imp
             _configManager.OnValueChanged(ImpCCVars.EnableSimplifiedRadiationPulse, value => _simplifiedRadiationPulse = value, true); // imp
         }
 
@@ -114,17 +117,19 @@ namespace Content.Client.Radiation.Overlays
             //Add all pulses that are not added yet but qualify
             while (pulses.MoveNext(out var pulseEntity, out var pulse))
             {
-                if (!_pulses.ContainsKey(pulseEntity) && PulseQualifies(pulseEntity, args.WorldAABB, args.MapId)) // imp, changed variables PulseQualifies takes in to match imp changes
+                var netEnt = _entityManager.GetNetEntity(pulseEntity); // imp
+                if (!_pulses.ContainsKey(netEnt) && PulseQualifies(pulseEntity, args.WorldAABB, args.MapId)) // imp, changed pulseEntity to netEnt and the variables PulseQualifies takes in to match imp changes
                 {
                     _pulses.Add(
-                            pulseEntity,
+                            netEnt, // imp, changed from pulseEntity to netEnt
                             (
                                 _baseShader.Duplicate(),
                                 new RadiationShaderInstance(
                                     _transform.GetMapCoordinates(pulseEntity),
                                     pulse.VisualRange,
                                     pulse.StartTime,
-                                    pulse.VisualDuration
+                                    pulse.VisualDuration,
+                                    TimeSpan.Zero // imp
                                 )
                             )
                     );
@@ -134,15 +139,17 @@ namespace Content.Client.Radiation.Overlays
             var activeShaderIds = _pulses.Keys;
             foreach (var pulseEntity in activeShaderIds) //Remove all pulses that are added and no longer qualify
             {
-                if (_entityManager.EntityExists(pulseEntity) &&
-                    PulseQualifies(pulseEntity, args.WorldAABB, args.MapId) && // imp, changed variables PulseQualifies takes in to match imp changes
-                    _entityManager.TryGetComponent(pulseEntity, out RadiationPulseComponent? pulse))
+                if (// _entityManager.EntityExists(pulseEntity) && imp removal
+                    _entityManager.TryGetEntity(pulseEntity, out var ent) && // imp
+                    PulseQualifies(ent.Value, args.WorldAABB, args.MapId) && // imp, changed variables PulseQualifies takes in to match imp changes
+                    _entityManager.TryGetComponent(ent, out RadiationPulseComponent? pulse)) // imp, changed pulseEntity to ent
                 {
                     var shaderInstance = _pulses[pulseEntity];
-                    shaderInstance.instance.CurrentMapCoords = _transform.GetMapCoordinates(pulseEntity);
+                    shaderInstance.instance.CurrentMapCoords = _transform.GetMapCoordinates(ent.Value); // imp, changed from pulseEntity to ent.Value
                     shaderInstance.instance.Range = pulse.VisualRange;
                 }
-                else
+                else if (_pulses.TryGetValue(pulseEntity, out var value) // imp added if (_pulses.TryGetValue(pulseEntity, out var value)
+                        && value.instance.NextExpectedServerUpdate < _gameTiming.RealTime) // imp
                 {
                     _pulses[pulseEntity].shd.Dispose();
                     _pulses.Remove(pulseEntity);
@@ -169,12 +176,28 @@ namespace Content.Client.Radiation.Overlays
             // imp end
         }
 
-        private sealed record RadiationShaderInstance(MapCoordinates CurrentMapCoords, float Range, TimeSpan Start, float Duration)
+        // imp start
+        private void OnRadiationPulseInRangeEvent(ref RadiationPulseInRangeEvent args)
+        {
+            if (_pulses.TryGetValue(args.Pulse, out var value))
+            {
+                value.instance.CurrentMapCoords = args.Coords;
+                value.instance.Range = args.VisualRange;
+                value.instance.Duration = args.VisualDuration;
+                value.instance.NextExpectedServerUpdate = args.NextExpectedUpdate;
+            }
+            else
+                _pulses.Add(args.Pulse, (_baseShader.Duplicate(), new RadiationShaderInstance(args.Coords, args.VisualRange, args.StartTime, args.VisualDuration, args.NextExpectedUpdate)));
+        }
+        // imp end
+
+        private sealed record RadiationShaderInstance(MapCoordinates CurrentMapCoords, float Range, TimeSpan Start, float Duration, TimeSpan NextExpectedServerUpdate) // imp added TimeSpan NextExpectedServerUpdate
         {
             public MapCoordinates CurrentMapCoords = CurrentMapCoords;
             public float Range = Range;
             public TimeSpan Start = Start;
             public float Duration = Duration;
+            public TimeSpan NextExpectedServerUpdate = NextExpectedServerUpdate; // imp
         };
     }
 }

@@ -1,14 +1,12 @@
 using Content.Shared.Radiation.Components;
 using Robust.Shared.Spawners;
 using Robust.Shared.Timing;
-using Robust.Shared.GameStates; // imp
 
 namespace Content.Shared.Radiation.Systems;
 
-public sealed class RadiationPulseSystem : EntitySystem
+public abstract class SharedRadiationPulseSystem : EntitySystem // imp, changed from sealed to abstract and added Shared
 {
-    [Dependency] private readonly IGameTiming _timing = default!;
-    [Dependency] private readonly SharedPvsOverrideSystem _pvs = default!; // imp
+    [Dependency] protected readonly IGameTiming Timing = default!; // imp, changed from private to protected and from _timing to Timing
 
     public override void Initialize()
     {
@@ -18,9 +16,7 @@ public sealed class RadiationPulseSystem : EntitySystem
 
     private void OnStartup(EntityUid uid, RadiationPulseComponent component, ComponentStartup args)
     {
-        _pvs.AddGlobalOverride(uid); // imp, needed since pulses with large range and the entity out of pvs will not send data to create visuals even if the edge of the pulse should be seen
-
-        component.StartTime = _timing.RealTime;
+        component.StartTime = Timing.RealTime; // imp, changed from _timing to Timing
 
         // try to get despawn time or keep default duration time
         if (TryComp<TimedDespawnComponent>(uid, out var despawn))
